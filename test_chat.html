@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Тест чата SB Finance AI</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .chat-container { max-width: 600px; margin: 0 auto; }
+        .message { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .user { background-color: #e3f2fd; text-align: right; }
+        .assistant { background-color: #f5f5f5; }
+        .input-container { margin-top: 20px; }
+        input, button { padding: 10px; margin: 5px; }
+        input { width: 400px; }
+        .demo-note { background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; margin-bottom: 20px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h1>🤖 Тест чата SB Finance AI</h1>
+        
+        <div class="demo-note">
+            <strong>📝 Демо-режим:</strong> Чат работает в демо-режиме без API ключа. 
+            Для получения реальных ответов настройте API ключ в .env файле.
+        </div>
+        
+        <div id="chat-messages">
+            <div class="message assistant">
+                Добро пожаловать в SB Finance AI! Начните диалог, отправив сообщение.
+            </div>
+        </div>
+        
+        <div class="input-container">
+            <input type="text" id="message-input" placeholder="Введите ваше сообщение..." />
+            <button onclick="sendMessage()">Отправить</button>
+        </div>
+    </div>
+
+    <script>
+        let sessionId = null;
+        
+        async function login() {
+            try {
+                // Сначала получаем CSRF токен
+                const loginUrl = '/login/';
+                
+                // Попробуем авторизоваться как admin/admin
+                const response = await fetch(loginUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'username=admin&password=admin',
+                    credentials: 'include'
+                });
+                
+                if (response.redirected) {
+                    return true;
+                }
+                
+                return false;
+            } catch (error) {
+                console.error('Login error:', error);
+                return false;
+            }
+        }
+        
+        async function sendMessage() {
+            const input = document.getElementById('message-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Добавляем сообщение пользователя в чат
+            addMessage(message, 'user');
+            input.value = '';
+            
+            try {
+                // Проверяем, авторизованы ли мы
+                const loggedIn = await login();
+                if (!loggedIn) {
+                    addMessage('Ошибка авторизации. Проверьте логин и пароль.', 'assistant');
+                    return;
+                }
+                
+                // Отправляем сообщение в чат
+                const response = await fetch('/ai/chat/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': await getCsrfToken(),
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        message: message,
+                        session_id: sessionId
+                    })
+                });
+                
+                if (!response.ok) {
+                    addMessage('Ошибка отправки сообщения: ' + response.status, 'assistant');
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (data.ok) {
+                    sessionId = data.session_id;
+                    addMessage(data.reply, 'assistant');
+                } else {
+                    addMessage('Ошибка: ' + data.error, 'assistant');
+                }
+                
+            } catch (error) {
+                console.error('Chat error:', error);
+                addMessage('Ошибка соединения: ' + error.message, 'assistant');
+            }
+        }
+        
+        function addMessage(content, sender) {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            messageDiv.innerHTML = content.replace(/\n/g, '<br>');
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        async function getCsrfToken() {
+            // Простое получение CSRF токена из cookie
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'csrftoken') {
+                    return value;
+                }
+            }
+            return '';
+        }
+        
+        // Отправка по Enter
+        document.getElementById('message-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
