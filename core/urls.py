@@ -1,12 +1,14 @@
 from django.urls import path
 from django.contrib.auth.views import LogoutView
 from . import views
+from . import api_advanced_ml
 
 urlpatterns = [
     # Главная страница и workspace
     path('', views.workspace, name='workspace'),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('demo/', views.ai_demo, name='ai_demo'),  # 🚀 Демо WOW-фич
+    path('ml-showcase/', api_advanced_ml.ml_showcase_view, name='ml_showcase'),  # 🚀 ML Showcase
 
     
     # API endpoints
@@ -84,5 +86,21 @@ urlpatterns = [
     # AI рекомендации
     path('ai/', views.ai_recommendations, name='ai_recommendations'),
     path('documents/generate/', views.document_generate_view, name='document_generate'),
+    
+    # 🚀 ADVANCED ML API ENDPOINTS
+    path('api/ml/forecast/advanced/', api_advanced_ml.advanced_forecast_api, name='advanced_forecast'),
+    path('api/ml/anomaly/detect/', api_advanced_ml.anomaly_detection_api, name='anomaly_detection'),
+    path('api/ml/clustering/', api_advanced_ml.clustering_api, name='clustering'),
+    path('api/ml/classifier/train/', api_advanced_ml.train_advanced_classifier_api, name='train_classifier'),
+    path('api/ml/classifier/predict/', api_advanced_ml.predict_category_api, name='predict_category'),
+    path('api/ml/monte-carlo/', api_advanced_ml.monte_carlo_simulation_api, name='monte_carlo'),
+    path('api/ml/goal-simulation/', api_advanced_ml.goal_simulation_api, name='goal_simulation'),
+    path('api/ml/time-series/decompose/', api_advanced_ml.time_series_decomposition_api, name='time_series_decomposition'),
+    path('api/ml/cohort-analysis/', api_advanced_ml.cohort_analysis_api, name='cohort_analysis'),
+    path('api/ml/viz/sankey/', api_advanced_ml.visualization_sankey_api, name='viz_sankey'),
+    path('api/ml/viz/sunburst/', api_advanced_ml.visualization_sunburst_api, name='viz_sunburst'),
+    path('api/ml/viz/correlation/', api_advanced_ml.visualization_correlation_api, name='viz_correlation'),
+    path('api/ml/viz/dashboard/', api_advanced_ml.visualization_dashboard_api, name='viz_dashboard'),
+    path('api/ml/metrics/', api_advanced_ml.ml_metrics_summary_api, name='ml_metrics'),
 ]
 
