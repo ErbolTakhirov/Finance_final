@@ -1,0 +1,738 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Advanced ML Showcase - SB Finance AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #6366f1;
+        --success-color: #10b981;
+        --danger-color: #ef4444;
+        --warning-color: #f59e0b;
+        --dark-bg: #1f2937;
+        --card-bg: #374151;
+    }
+    
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+    }
+    
+    .showcase-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .showcase-header {
+        text-align: center;
+        color: white;
+        margin-bottom: 3rem;
+    }
+    
+    .showcase-header h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .showcase-header p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+    
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+    
+    .feature-card {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+    }
+    
+    .feature-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+    
+    .feature-icon.blue { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .feature-icon.green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+    .feature-icon.red { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+    .feature-icon.yellow { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+    .feature-icon.purple { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
+    
+    .feature-card h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: #1f2937;
+    }
+    
+    .feature-card p {
+        color: #6b7280;
+        margin-bottom: 1.5rem;
+    }
+    
+    .btn-try {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.3s;
+        width: 100%;
+    }
+    
+    .btn-try:hover {
+        opacity: 0.9;
+    }
+    
+    .result-panel {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-top: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        display: none;
+    }
+    
+    .result-panel.active {
+        display: block;
+        animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .loading {
+        text-align: center;
+        padding: 3rem;
+    }
+    
+    .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid var(--primary-color);
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .metric-box {
+        background: #f9fafb;
+        padding: 1rem;
+        border-radius: 8px;
+        text-align: center;
+    }
+    
+    .metric-box .value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+    
+    .metric-box .label {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-top: 0.5rem;
+    }
+    
+    .chart-container {
+        width: 100%;
+        height: 400px;
+        margin: 1rem 0;
+    }
+    
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-right: 0.5rem;
+    }
+    
+    .badge-success { background: #d1fae5; color: #065f46; }
+    .badge-warning { background: #fef3c7; color: #92400e; }
+    .badge-danger { background: #fee2e2; color: #991b1b; }
+    .badge-info { background: #dbeafe; color: #1e40af; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="showcase-container">
+    <div class="showcase-header">
+        <h1>🚀 Advanced ML Showcase</h1>
+        <p>Демонстрация всех возможностей Data Science и Machine Learning</p>
+        <p><span class="badge badge-info">Prophet</span> <span class="badge badge-info">LSTM</span> <span class="badge badge-info">XGBoost</span> <span class="badge badge-info">SHAP</span> <span class="badge badge-info">Monte Carlo</span></p>
+    </div>
+    
+    <div class="feature-grid">
+        <!-- Advanced Forecasting -->
+        <div class="feature-card">
+            <div class="feature-icon blue">📈</div>
+            <h3>Advanced Forecasting</h3>
+            <p>Прогнозирование с использованием Prophet, ARIMA, LSTM и ensemble методов</p>
+            <button class="btn-try" onclick="runAdvancedForecast()">Попробовать</button>
+        </div>
+        
+        <!-- Anomaly Detection -->
+        <div class="feature-card">
+            <div class="feature-icon red">🔍</div>
+            <h3>Anomaly Detection</h3>
+            <p>Обнаружение аномалий с помощью Isolation Forest, One-Class SVM, LOF и Autoencoder</p>
+            <button class="btn-try" onclick="runAnomalyDetection()">Попробовать</button>
+        </div>
+        
+        <!-- Clustering -->
+        <div class="feature-card">
+            <div class="feature-icon purple">🎯</div>
+            <h3>Smart Clustering</h3>
+            <p>Сегментация транзакций с помощью K-Means, DBSCAN и иерархической кластеризации</p>
+            <button class="btn-try" onclick="runClustering()">Попробовать</button>
+        </div>
+        
+        <!-- Monte Carlo -->
+        <div class="feature-card">
+            <div class="feature-icon green">🎲</div>
+            <h3>Monte Carlo Simulation</h3>
+            <p>Моделирование рисков и прогнозирование будущей прибыли с доверительными интервалами</p>
+            <button class="btn-try" onclick="runMonteCarlo()">Попробовать</button>
+        </div>
+        
+        <!-- Time Series Decomposition -->
+        <div class="feature-card">
+            <div class="feature-icon yellow">📊</div>
+            <h3>Time Series Analysis</h3>
+            <p>Декомпозиция временных рядов на тренд, сезонность и остатки</p>
+            <button class="btn-try" onclick="runTimeSeriesDecomposition()">Попробовать</button>
+        </div>
+        
+        <!-- Advanced Visualization -->
+        <div class="feature-card">
+            <div class="feature-icon blue">🎨</div>
+            <h3>Interactive Visualizations</h3>
+            <p>Sankey диаграммы, Sunburst графики, корреляционные матрицы</p>
+            <button class="btn-try" onclick="runAdvancedViz()">Попробовать</button>
+        </div>
+    </div>
+    
+    <!-- Result Panel -->
+    <div id="resultPanel" class="result-panel">
+        <h2 id="resultTitle">Результаты</h2>
+        <div id="resultContent"></div>
+    </div>
+</div>
+
+<script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+<script>
+const API_BASE = '/api/ml';
+
+function showLoading() {
+    const panel = document.getElementById('resultPanel');
+    const content = document.getElementById('resultContent');
+    content.innerHTML = '<div class="loading"><div class="spinner"></div><p>Анализируем данные...</p></div>';
+    panel.classList.add('active');
+    panel.scrollIntoView({ behavior: 'smooth' });
+}
+
+function showError(message) {
+    const content = document.getElementById('resultContent');
+    content.innerHTML = `<div class="alert alert-danger">${message}</div>`;
+}
+
+async function runAdvancedForecast() {
+    document.getElementById('resultTitle').textContent = '📈 Advanced Forecasting';
+    showLoading();
+    
+    try {
+        const response = await fetch(`${API_BASE}/forecast/advanced/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                method: 'auto',
+                periods: 30
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+            showError(data.error);
+            return;
+        }
+        
+        let html = `
+            <div class="metric-grid">
+                <div class="metric-box">
+                    <div class="value">${data.method}</div>
+                    <div class="label">Метод</div>
+                </div>
+                <div class="metric-box">
+                    <div class="value">${data.predictions.length}</div>
+                    <div class="label">Дней прогноза</div>
+                </div>
+                <div class="metric-box">
+                    <div class="value">${data.metrics?.r2?.toFixed(2) || 'N/A'}</div>
+                    <div class="label">R² Score</div>
+                </div>
+                <div class="metric-box">
+                    <div class="value">${data.metrics?.mae?.toFixed(0) || 'N/A'}</div>
+                    <div class="label">MAE</div>
+                </div>
+            </div>
+        `;
+        
+        // Plot forecast
+        html += '<div id="forecastChart" class="chart-container"></div>';
+        
+        document.getElementById('resultContent').innerHTML = html;
+        
+        // Create Plotly chart
+        const trace1 = {
+            x: data.dates,
+            y: data.predictions,
+            mode: 'lines+markers',
+            name: 'Прогноз',
+            line: { color: '#667eea', width: 3 }
+        };
+        
+        const traces = [trace1];
+        
+        if (data.lower_bound && data.upper_bound) {
+            traces.push({
+                x: data.dates.concat(data.dates.slice().reverse()),
+                y: data.upper_bound.concat(data.lower_bound.slice().reverse()),
+                fill: 'toself',
+                fillcolor: 'rgba(102, 126, 234, 0.2)',
+                line: { color: 'transparent' },
+                name: '95% CI',
+                showlegend: true
+            });
+        }
+        
+        const layout = {
+            title: 'Прогноз прибыли',
+            xaxis: { title: 'Дата' },
+            yaxis: { title: 'Прибыль' },
+            hovermode: 'closest'
+        };
+        
+        Plotly.newPlot('forecastChart', traces, layout);
+        
+    } catch (error) {
+        showError('Ошибка: ' + error.message);
+    }
+}
+
+async function runAnomalyDetection() {
+    document.getElementById('resultTitle').textContent = '🔍 Anomaly Detection';
+    showLoading();
+    
+    try {
+        const response = await fetch(`${API_BASE}/anomaly/detect/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                contamination: 0.1,
+                use_ensemble: true
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+            showError(data.error);
+            return;
+        }
+        
+        let html = `
+            <div class="metric-grid">
+                <div class="metric-box">
+                    <div class="value">${data.n_anomalies}</div>
+                    <div class="label">Аномалий обнаружено</div>
+                </div>
+                <div class="metric-box">
+                    <div class="value">${data.anomaly_percentage.toFixed(1)}%</div>
+                    <div class="label">% от транзакций</div>
+                </div>
+                <div class="metric-box">
+                    <div class="value">${data.methods_used.length}</div>
+                    <div class="label">Методов использовано</div>
+                </div>
+            </div>
+            
+            <h4 style="margin-top: 2rem;">Топ аномалий:</h4>
+            <div style="max-height: 400px; overflow-y: auto;">
+                ${data.anomalies.slice(0, 10).map(a => `
+                    <div style="padding: 1rem; background: #f9fafb; border-radius: 8px; margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <strong>${a.type === 'income' ? '📥' : '📤'} ${a.amount.toFixed(0)} ₽</strong>
+                            <span class="badge badge-danger">Confidence: ${(a.confidence * 100).toFixed(0)}%</span>
+                        </div>
+                        <div style="color: #6b7280; margin-top: 0.5rem;">
+                            ${a.date} | ${a.category}
+                        </div>
+                        <div style="color: #9ca3af; font-size: 0.875rem; margin-top: 0.25rem;">
+                            ${a.description}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        
+        document.getElementById('resultContent').innerHTML = html;
+        
+    } catch (error) {
+        showError('Ошибка: ' + error.message);
+    }
+}
+
+async function runClustering() {
+    document.getElementById('resultTitle').textContent = '🎯 Smart Clustering';
+    showLoading();
+    
+    try {
+        const response = await fetch(`${API_BASE}/clustering/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                method: 'auto',
+                auto_select: true
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+            showError(data.error);
+            return;
+        }
+        
+        let html = `
+            <div class="metric-grid">
+                <div class="metric-box">
+                    <div class="value">${data.n_clusters}</div>
+                    <div class="label">Кластеров найдено</div>
+                </div>
+                <div class="metric-box">
+                    <div class="value">${data.metrics.silhouette_score.toFixed(3)}</div>
+                    <div class="label">Silhouette Score</div>
+                </div>
+                <div class="metric-box">
+                    <div class="value">${data.total_transactions}</div>
+                    <div class="label">Транзакций</div>
+                </div>
+            </div>
+            
+            <div id="clusterChart" class="chart-container"></div>
+            
+            <h4 style="margin-top: 2rem;">Анализ кластеров:</h4>
+            ${Object.entries(data.cluster_analysis).map(([id, cluster]) => `
+                <div style="padding: 1rem; background: #f9fafb; border-radius: 8px; margin-bottom: 1rem;">
+                    <h5>Кластер ${id} (${cluster.percentage.toFixed(1)}%)</h5>
+                    <div style="color: #6b7280;">
+                        <p>Средняя сумма: ${cluster.avg_amount.toFixed(0)} ₽</p>
+                        <p>Основная категория: ${cluster.most_common_category}</p>
+                        <p>Доходы: ${cluster.income_expense_ratio.income} | Расходы: ${cluster.income_expense_ratio.expense}</p>
+                    </div>
+                </div>
+            `).join('')}
+        `;
+        
+        document.getElementById('resultContent').innerHTML = html;
+        
+        // Plot clusters
+        const trace = {
+            x: data.visualization_data.map(d => d.x),
+            y: data.visualization_data.map(d => d.y),
+            mode: 'markers',
+            type: 'scatter',
+            marker: {
+                size: data.visualization_data.map(d => Math.log(Math.abs(d.amount) + 1) * 5),
+                color: data.visualization_data.map(d => d.cluster),
+                colorscale: 'Viridis',
+                showscale: true
+            },
+            text: data.visualization_data.map(d => `${d.category}: ${d.amount} ₽`),
+            hoverinfo: 'text'
+        };
+        
+        const layout = {
+            title: 'Визуализация кластеров (PCA)',
+            xaxis: { title: 'PC1' },
+            yaxis: { title: 'PC2' },
+            hovermode: 'closest'
+        };
+        
+        Plotly.newPlot('clusterChart', [trace], layout);
+        
+    } catch (error) {
+        showError('Ошибка: ' + error.message);
+    }
+}
+
+async function runMonteCarlo() {
+    document.getElementById('resultTitle').textContent = '🎲 Monte Carlo Simulation';
+    showLoading();
+    
+    try {
+        const response = await fetch(`${API_BASE}/monte-carlo/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                n_simulations: 1000,
+                days_ahead: 30
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+            showError(data.error);
+            return;
+        }
+        
+        const risk = data.risk_metrics;
+        
+        let html = `
+            <div class="metric-grid">
+                <div class="metric-box">
+                    <div class="value">${(risk.probability_of_profit * 100).toFixed(1)}%</div>
+                    <div class="label">Вероятность прибыли</div>
+                </div>
+                <div class="metric-box">
+                    <div class="value">${risk.expected_profit.toFixed(0)} ₽</div>
+                    <div class="label">Ожидаемая прибыль</div>
+                </div>
+                <div class="metric-box">
+                    <div class="value">${risk.best_case.toFixed(0)} ₽</div>
+                    <div class="label">Лучший сценарий</div>
+                </div>
+                <div class="metric-box">
+                    <div class="value">${risk.worst_case.toFixed(0)} ₽</div>
+                    <div class="label">Худший сценарий</div>
+                </div>
+            </div>
+            
+            <div id="monteCarloChart" class="chart-container"></div>
+        `;
+        
+        document.getElementById('resultContent').innerHTML = html;
+        
+        // Plot cumulative profit with confidence bands
+        const days = Array.from({length: data.days_ahead}, (_, i) => i + 1);
+        
+        const traces = [
+            {
+                x: days,
+                y: data.cumulative_profit.mean,
+                mode: 'lines',
+                name: 'Средняя прибыль',
+                line: { color: '#667eea', width: 3 }
+            },
+            {
+                x: days.concat(days.slice().reverse()),
+                y: data.cumulative_profit.ci_95.concat(data.cumulative_profit.ci_5.slice().reverse()),
+                fill: 'toself',
+                fillcolor: 'rgba(102, 126, 234, 0.2)',
+                line: { color: 'transparent' },
+                name: '90% доверительный интервал',
+                showlegend: true
+            }
+        ];
+        
+        const layout = {
+            title: 'Monte Carlo: кумулятивная прибыль',
+            xaxis: { title: 'День' },
+            yaxis: { title: 'Прибыль' },
+            hovermode: 'closest'
+        };
+        
+        Plotly.newPlot('monteCarloChart', traces, layout);
+        
+    } catch (error) {
+        showError('Ошибка: ' + error.message);
+    }
+}
+
+async function runTimeSeriesDecomposition() {
+    document.getElementById('resultTitle').textContent = '📊 Time Series Decomposition';
+    showLoading();
+    
+    try {
+        const response = await fetch(`${API_BASE}/time-series/decompose/?period=7`, {
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+            showError(data.error);
+            return;
+        }
+        
+        let html = '<div id="decompositionChart" class="chart-container" style="height: 800px;"></div>';
+        document.getElementById('resultContent').innerHTML = html;
+        
+        // Create subplots
+        const traces = [
+            {
+                x: data.dates,
+                y: data.original,
+                name: 'Исходные данные',
+                yaxis: 'y1'
+            },
+            {
+                x: data.dates,
+                y: data.trend,
+                name: 'Тренд',
+                yaxis: 'y2'
+            },
+            {
+                x: data.dates,
+                y: data.seasonal,
+                name: 'Сезонность',
+                yaxis: 'y3'
+            },
+            {
+                x: data.dates,
+                y: data.residual,
+                name: 'Остатки',
+                yaxis: 'y4'
+            }
+        ];
+        
+        const layout = {
+            title: 'Декомпозиция временного ряда',
+            grid: {rows: 4, columns: 1, pattern: 'independent'},
+            yaxis: {title: 'Исходные'},
+            yaxis2: {title: 'Тренд'},
+            yaxis3: {title: 'Сезонность'},
+            yaxis4: {title: 'Остатки'}
+        };
+        
+        Plotly.newPlot('decompositionChart', traces, layout);
+        
+    } catch (error) {
+        showError('Ошибка: ' + error.message);
+    }
+}
+
+async function runAdvancedViz() {
+    document.getElementById('resultTitle').textContent = '🎨 Interactive Visualizations';
+    showLoading();
+    
+    try {
+        // Load Sankey diagram
+        const sankeyResponse = await fetch(`${API_BASE}/viz/sankey/`, {
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        });
+        
+        const sankeyData = await sankeyResponse.json();
+        
+        let html = '<h4>Sankey Diagram: Денежный поток</h4>';
+        html += '<div id="sankeyChart" class="chart-container"></div>';
+        html += '<h4 style="margin-top: 2rem;">Dashboard</h4>';
+        html += '<div id="dashboardChart" class="chart-container" style="height: 800px;"></div>';
+        
+        document.getElementById('resultContent').innerHTML = html;
+        
+        if (sankeyData.success) {
+            const sankeyFig = JSON.parse(sankeyData.figure_json);
+            Plotly.newPlot('sankeyChart', sankeyFig.data, sankeyFig.layout);
+        }
+        
+        // Load dashboard
+        const dashResponse = await fetch(`${API_BASE}/viz/dashboard/`, {
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        });
+        
+        const dashData = await dashResponse.json();
+        
+        if (dashData.success) {
+            const dashFig = JSON.parse(dashData.figure_json);
+            Plotly.newPlot('dashboardChart', dashFig.data, dashFig.layout);
+        }
+        
+    } catch (error) {
+        showError('Ошибка: ' + error.message);
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}
