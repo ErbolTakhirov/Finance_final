@@ -186,3 +186,40 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
 
+# ============================================================================
+# TEEN FINANCE AI - FinBilim 2025 Hackathon Settings
+# ============================================================================
+
+# LLM Configuration for Teen AI Coach
+LLM_PROVIDER = os.getenv('LLM_PROVIDER', 'openrouter')
+LLM_API_KEY = os.getenv('LLM_API_KEY')
+LLM_MODEL = os.getenv('LLM_MODEL', 'openai/gpt-4o-mini')
+LLM_API_URL = os.getenv('LLM_API_URL', 'https://openrouter.ai/api/v1/chat/completions')
+LLM_HTTP_REFERER = os.getenv('LLM_HTTP_REFERER', 'http://localhost:8000')
+
+# Teen-specific features
+TEEN_EDUCATION_ENABLED = True
+TEEN_GAMIFICATION_ENABLED = True
+TEEN_SCAM_PROTECTION_ENABLED = True
+TEEN_DEMO_MODE_DEFAULT = False
+
+# Financial education content settings
+LEARNING_MODULES_PUBLISH_AUTO = True
+QUIZ_PASSING_SCORE_DEFAULT = 70
+MAX_QUIZ_ATTEMPTS = 3
+
+# Gamification settings
+ACHIEVEMENT_POINTS_ENABLED = True
+FINANCIAL_IQ_MAX_SCORE = 100
+STREAK_REWARD_THRESHOLD = 7
+
+# Security and privacy
+TEEN_DATA_PROTECTION = True
+AUTO_ANONYMIZE_CHAT_DATA = True
+SCAM_REPORT_RETENTION_DAYS = 90
+
+# Demo mode settings
+DEMO_USER_BALANCE = 5000
+DEMO_GOALS_SAMPLE_SIZE = 3
+DEMO_ACHIEVEMENTS_SAMPLE_SIZE = 5
+

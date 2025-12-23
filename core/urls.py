@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from django.contrib.auth.views import LogoutView
 from . import views
 
@@ -7,6 +7,9 @@ urlpatterns = [
     path('', views.workspace, name='workspace'),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('demo/', views.ai_demo, name='ai_demo'),  # 🚀 Демо WOW-фич
+    
+    # Teen-focused FinBilim 2025 MVP
+    path('teen/', include('core.urls_teen')),
 
     
     # API endpoints
