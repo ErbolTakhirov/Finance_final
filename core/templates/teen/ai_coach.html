@@ -1,0 +1,626 @@
+{% extends 'teen/base.html' %}
+
+{% block title %}AI Коуч - SB Finance AI{% endblock %}
+
+{% block content %}
+<!-- AI Coach Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="teen-card p-4">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="h2 mb-2">
+                        <i class="bi bi-robot me-2"></i>AI Финансовый Коуч
+                    </h1>
+                    <p class="text-muted mb-0">
+                        Задавайте вопросы о деньгах, бюджете и целях. AI поможет разобраться простым языком!
+                    </p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <div class="d-flex justify-content-lg-end gap-2">
+                        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#tipsModal">
+                            <i class="bi bi-lightbulb me-2"></i>Советы по общению
+                        </button>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newChatModal">
+                            <i class="bi bi-chat-dots me-2"></i>Новый чат
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Chat Interface -->
+    <div class="col-lg-8">
+        <div class="teen-card p-0">
+            <!-- Chat Header -->
+            <div class="p-4 border-bottom">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1">
+                            {% if current_session %}
+                                {{ current_session.title|default:"Чат с AI" }}
+                            {% else %}
+                                Новый чат
+                            {% endif %}
+                        </h5>
+                        {% if current_session %}
+                        <small class="text-muted">
+                            <i class="bi bi-clock me-1"></i>Последнее сообщение: {{ current_session.updated_at|date:"d.m H:i" }}
+                        </small>
+                        {% endif %}
+                    </div>
+                    {% if current_session %}
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-secondary btn-sm" onclick="clearChat()">
+                            <i class="bi bi-trash me-1"></i>Очистить
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm" onclick="exportChat()">
+                            <i class="bi bi-download me-1"></i>Экспорт
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Chat Messages -->
+            <div class="chat-container" id="chatContainer" style="height: 500px;">
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="chat-message {{ message.role }} mb-3">
+                        <div class="d-flex {% if message.role == 'user' %}justify-content-end{% endif %}">
+                            {% if message.role == 'teen_coach' %}
+                            <div class="me-3">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                    <i class="bi bi-robot"></i>
+                                </div>
+                            </div>
+                            {% endif %}
+                            <div class="chat-bubble {{ message.role }}" style="max-width: 70%;">
+                                {{ message.content|linebreaks }}
+                                
+                                {% if message.reasoning_explained %}
+                                <div class="mt-2 pt-2 border-top">
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle me-1"></i><strong>Почему AI дал такой совет:</strong><br>
+                                        {{ message.reasoning_explained }}
+                                    </small>
+                                </div>
+                                {% endif %}
+                                
+                                {% if message.learning_objective %}
+                                <div class="mt-2">
+                                    <span class="badge bg-info">
+                                        <i class="bi bi-book me-1"></i>{{ message.learning_objective }}
+                                    </span>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="mt-2 d-flex gap-2">
+                                    <small class="text-muted">{{ message.created_at|date:"H:i" }}</small>
+                                    {% if message.was_actionable %}
+                                    <small class="text-success">
+                                        <i class="bi bi-lightning"></i> Практический совет
+                                    </small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% if message.role == 'user' %}
+                            <div class="ms-3">
+                                <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                    <i class="bi bi-person"></i>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <!-- Welcome Message -->
+                    <div class="text-center py-5">
+                        <i class="bi bi-robot" style="font-size: 4rem; color: var(--primary-color);"></i>
+                        <h4 class="mt-3 mb-3">Привет! Я ваш AI финансовый коуч 🤖</h4>
+                        <p class="text-muted mb-4">Задавайте вопросы о деньгах, бюджете, целях накопления или любые другие финансовые темы</p>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="p-3 border rounded">
+                                    <i class="bi bi-bullseye d-block mb-2" style="font-size: 2rem; color: var(--primary-color);"></i>
+                                    <h6>Цели накопления</h6>
+                                    <p class="text-muted small">Как накопить на телефон, курсы или другие покупки</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="p-3 border rounded">
+                                    <i class="bi bi-calculator d-block mb-2" style="font-size: 2rem; color: var(--success-color);"></i>
+                                    <h6>Планирование бюджета</h6>
+                                    <p class="text-muted small">Как правильно распределить карманные деньги</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="p-3 border rounded">
+                                    <i class="bi bi-shield-check d-block mb-2" style="font-size: 2rem; color: var(--warning-color);"></i>
+                                    <h6>Безопасность</h6>
+                                    <p class="text-muted small">Как избежать мошенничества и защитить деньги</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Chat Input -->
+            <div class="p-4 border-top">
+                <form id="chatForm">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="messageInput" 
+                               placeholder="Задайте вопрос о финансах..." 
+                               {% if not current_session %}autofocus{% endif %}>
+                        <button type="submit" class="btn btn-primary" id="sendButton">
+                            <i class="bi bi-send"></i>
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="mt-2">
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Попробуйте: "Как накопить 50000 сом за полгода?" или "Сколько можно тратить на развлечения?"
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Chat Sessions -->
+        <div class="teen-card p-4 mb-4">
+            <h4 class="h6 mb-3">
+                <i class="bi bi-chat-dots me-2"></i>История чатов
+            </h4>
+            
+            {% if chat_sessions %}
+                <div class="list-group list-group-flush">
+                    {% for session in chat_sessions %}
+                    <a href="?session={{ session.session_id }}" 
+                       class="list-group-item list-group-item-action border-0 px-0 {% if current_session and current_session.id == session.id %}active{% endif %}">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ session.title|default:"Без названия"|truncatechars:30 }}</h6>
+                            <small>{{ session.updated_at|date:"d.m" }}</small>
+                        </div>
+                        <p class="mb-1 text-muted small">{{ session.updated_at|date:"H:i" }}</p>
+                    </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-3">
+                    <i class="bi bi-chat-dots" style="font-size: 2rem; color: #d1d5db;"></i>
+                    <p class="text-muted small mt-2">История чатов появится здесь</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- AI Stats -->
+        <div class="teen-card p-4 mb-4">
+            <h4 class="h6 mb-3">
+                <i class="bi bi-graph-up me-2"></i>Статистика общения
+            </h4>
+            
+            <div class="row text-center">
+                <div class="col-6">
+                    <div class="stat-number" style="font-size: 1.5rem;">{{ chat_sessions.count|default:0 }}</div>
+                    <small class="text-muted">Всего чатов</small>
+                </div>
+                <div class="col-6">
+                    <div class="stat-number" style="font-size: 1.5rem;">{{ user.progress.ai_conversations|default:0 }}</div>
+                    <small class="text-muted">Сообщений</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Questions -->
+        <div class="teen-card p-4">
+            <h4 class="h6 mb-3">
+                <i class="bi bi-question-circle me-2"></i>Популярные вопросы
+            </h4>
+            
+            <div class="d-grid gap-2">
+                <button class="btn btn-outline-primary btn-sm text-start" onclick="askQuestion('Как накопить на iPhone?')">
+                    <i class="bi bi-phone me-2"></i>Как накопить на iPhone?
+                </button>
+                <button class="btn btn-outline-primary btn-sm text-start" onclick="askQuestion('Сколько можно тратить на развлечения?')">
+                    <i class="bi bi-controller me-2"></i>Сколько можно тратить на развлечения?
+                </button>
+                <button class="btn btn-outline-primary btn-sm text-start" onclick="askQuestion('Как составить первый бюджет?')">
+                    <i class="bi bi-calculator me-2"></i>Как составить первый бюджет?
+                </button>
+                <button class="btn btn-outline-primary btn-sm text-start" onclick="askQuestion('Как увеличить карманные деньги?')">
+                    <i class="bi bi-plus-circle me-2"></i>Как увеличить карманные деньги?
+                </button>
+                <button class="btn btn-outline-primary btn-sm text-start" onclick="askQuestion('Что такое инфляция простыми словами?')">
+                    <i class="bi bi-info-circle me-2"></i>Что такое инфляция?
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tips Modal -->
+<div class="modal fade" id="tipsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content teen-card">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">
+                    <i class="bi bi-lightbulb me-2"></i>Советы по общению с AI
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-success mb-3">✅ Что работает хорошо:</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                <strong>Будьте конкретными:</strong> "Как накопить 50000 сом за 6 месяцев?"
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                <strong>Расскажите ситуацию:</strong> "У меня 3000 сом в месяц, хочу купить ноутбук"
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                <strong>Задавайте follow-up вопросы:</strong> "А если уменьшить траты на игры?"
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                <strong>Просите примеры:</strong> "Приведи пример недельного бюджета"
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-danger mb-3">❌ Чего избегать:</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="bi bi-x-circle text-danger me-2"></i>
+                                <strong>Слишком общие вопросы:</strong> "Как заработать деньги?"
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-x-circle text-danger me-2"></i>
+                                <strong>Вопросы не про финансы:</strong> AI фокусируется на деньгах
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-x-circle text-danger me-2"></i>
+                                <strong>Ожидание мгновенных ответов:</strong> AI думает 2-5 секунд
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-x-circle text-danger me-2"></i>
+                                <strong>Сложные финансовые термины:</strong> говорите простым языком
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info mt-3">
+                    <i class="bi bi-lightbulb me-2"></i>
+                    <strong>Секрет:</strong> AI лучше отвечает, когда понимает вашу конкретную ситуацию. Расскажите сколько вам лет, сколько получаете денег и на что хотите накопить!
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Chat Modal -->
+<div class="modal fade" id="newChatModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content teen-card">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">
+                    <i class="bi bi-chat-dots me-2"></i>Начать новый чат
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Вы уверены, что хотите начать новый чат? Текущий разговор будет сохранен в истории.</p>
+                
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Новый чат начнется с чистого листа</strong>, но AI будет помнить ваш профиль и общую информацию.
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <a href="{% url 'teen:ai_coach' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Начать новый чат
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentSessionId = '{{ current_session.session_id|default:"" }}';
+
+document.addEventListener('DOMContentLoaded', function() {
+    const chatForm = document.getElementById('chatForm');
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+    const chatContainer = document.getElementById('chatContainer');
+    
+    // Auto-scroll to bottom
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+    
+    // Form submission
+    chatForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const message = messageInput.value.trim();
+        if (!message) return;
+        
+        // Disable input
+        messageInput.disabled = true;
+        sendButton.disabled = true;
+        sendButton.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+        
+        // Add user message to chat
+        addMessageToChat('user', message);
+        messageInput.value = '';
+        
+        // Show typing indicator
+        addTypingIndicator();
+        
+        try {
+            // Send to AI
+            const response = await fetch('/teen/api/chat/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    message: message,
+                    session_id: currentSessionId
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            // Update session ID if new
+            if (data.session_id && !currentSessionId) {
+                currentSessionId = data.session_id;
+                // Update URL without reload
+                window.history.pushState({}, '', `?session=${currentSessionId}`);
+            }
+            
+            // Remove typing indicator and add AI response
+            removeTypingIndicator();
+            addMessageToChat('teen_coach', data.response, {
+                reasoning: data.reasoning,
+                educational: data.educational,
+                actionable: data.actionable
+            });
+            
+            // Show achievement notification if any
+            if (data.achievements_unlocked && data.achievements_unlocked > 0) {
+                showAchievementNotification(data.achievements_unlocked);
+            }
+            
+        } catch (error) {
+            console.error('Chat error:', error);
+            removeTypingIndicator();
+            addMessageToChat('teen_coach', 'Извините, произошла ошибка. Попробуйте еще раз.');
+        } finally {
+            // Re-enable input
+            messageInput.disabled = false;
+            sendButton.disabled = false;
+            sendButton.innerHTML = '<i class="bi bi-send"></i>';
+            messageInput.focus();
+        }
+    });
+});
+
+function addMessageToChat(role, content, options = {}) {
+    const chatContainer = document.getElementById('chatContainer');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `chat-message ${role} mb-3`;
+    
+    const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    
+    let messageContent = `
+        <div class="d-flex ${role === 'user' ? 'justify-content-end' : ''}">
+            ${role === 'teen_coach' ? `
+                <div class="me-3">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                        <i class="bi bi-robot"></i>
+                    </div>
+                </div>
+            ` : ''}
+            <div class="chat-bubble ${role}" style="max-width: 70%;">
+                ${content.replace(/\n/g, '<br>')}
+    `;
+    
+    // Add reasoning if available
+    if (options.reasoning) {
+        messageContent += `
+            <div class="mt-2 pt-2 border-top">
+                <small class="text-muted">
+                    <i class="bi bi-info-circle me-1"></i><strong>Почему AI дал такой совет:</strong><br>
+                    ${options.reasoning}
+                </small>
+            </div>
+        `;
+    }
+    
+    // Add metadata
+    messageContent += `
+                <div class="mt-2 d-flex gap-2">
+                    <small class="text-muted">${time}</small>
+                    ${options.actionable ? '<small class="text-success"><i class="bi bi-lightning"></i> Практический совет</small>' : ''}
+                </div>
+            </div>
+            ${role === 'user' ? `
+                <div class="ms-3">
+                    <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                        <i class="bi bi-person"></i>
+                    </div>
+                </div>
+            ` : ''}
+        </div>
+    `;
+    
+    messageDiv.innerHTML = messageContent;
+    chatContainer.appendChild(messageDiv);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+function addTypingIndicator() {
+    const chatContainer = document.getElementById('chatContainer');
+    const typingDiv = document.createElement('div');
+    typingDiv.id = 'typingIndicator';
+    typingDiv.className = 'chat-message teen_coach mb-3';
+    typingDiv.innerHTML = `
+        <div class="d-flex">
+            <div class="me-3">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                    <i class="bi bi-robot"></i>
+                </div>
+            </div>
+            <div class="chat-bubble teen_coach">
+                <div class="d-flex align-items-center">
+                    <div class="typing-animation">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span class="ms-2">AI думает...</span>
+                </div>
+            </div>
+        </div>
+    `;
+    chatContainer.appendChild(typingDiv);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+function removeTypingIndicator() {
+    const typingIndicator = document.getElementById('typingIndicator');
+    if (typingIndicator) {
+        typingIndicator.remove();
+    }
+}
+
+function askQuestion(question) {
+    document.getElementById('messageInput').value = question;
+    document.getElementById('messageInput').focus();
+}
+
+function showAchievementNotification(count) {
+    // Show success message
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed';
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        <i class="bi bi-trophy me-2"></i>
+        <strong>Поздравляем!</strong> Вы получили ${count} достижение(й)!
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alertDiv);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+    
+    // Confetti effect
+    confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+    });
+}
+
+function clearChat() {
+    if (confirm('Вы уверены, что хотите очистить этот чат?')) {
+        window.location.href = '{% url "teen:ai_coach" %}';
+    }
+}
+
+function exportChat() {
+    // Simple export functionality
+    const messages = document.querySelectorAll('.chat-message');
+    let chatText = 'Экспорт чата с AI финансовым коучем\n';
+    chatText += 'Дата: ' + new Date().toLocaleDateString('ru-RU') + '\n\n';
+    
+    messages.forEach(message => {
+        const role = message.classList.contains('user') ? 'Вы' : 'AI Коуч';
+        const content = message.querySelector('.chat-bubble').textContent.trim();
+        chatText += role + ': ' + content + '\n\n';
+    });
+    
+    const blob = new Blob([chatText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ai-chat-${new Date().toISOString().split('T')[0]}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+
+<style>
+.typing-animation {
+    display: inline-flex;
+    align-items: center;
+}
+
+.typing-animation span {
+    height: 8px;
+    width: 8px;
+    margin: 0 2px;
+    background-color: #6c757d;
+    border-radius: 50%;
+    display: inline-block;
+    animation: typing 1.4s infinite ease-in-out both;
+}
+
+.typing-animation span:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.typing-animation span:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+@keyframes typing {
+    0%, 80%, 100% {
+        transform: scale(0);
+        opacity: 0.5;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+</style>
+{% endblock %}
