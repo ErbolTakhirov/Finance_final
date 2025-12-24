@@ -382,11 +382,17 @@ class Income(models.Model):
         ('part_time', 'Подработка'),
         ('gift', 'Подарок'),
         ('freelance', 'Фриланс'),
+        ('sales', 'Продажи'),
+        ('investment', 'Инвестиции'),
+        ('services', 'Услуги'),
+        ('salary', 'Зарплата'),
+        ('bonus', 'Бонус'),
         ('other', 'Другое')
-    ])
+    ], default='other')
     
     description = models.TextField(blank=True, null=True)
     source = models.CharField(max_length=100, blank=True, help_text='Source of income (e.g., parents, employer)')
+    source_file = models.ForeignKey('UploadedFile', on_delete=models.SET_NULL, null=True, blank=True, related_name='incomes')
     
     # Goal linking
     linked_goal = models.ForeignKey(UserGoal, on_delete=models.SET_NULL, null=True, blank=True, 
@@ -394,6 +400,12 @@ class Income(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True)
     
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', 'date']),
+            models.Index(fields=['source_file']),
+        ]
+
     def __str__(self):
         return f"{self.income_type}: {self.amount} on {self.date}"
 
@@ -413,17 +425,31 @@ class Expense(models.Model):
         ('subscriptions', 'Подписки'),
         ('education', 'Образование'),
         ('health', 'Здоровье'),
+        ('beauty', 'Красота'),
+        ('games', 'Игры'),
+        ('rent', 'Аренда'),
+        ('marketing', 'Маркетинг'),
+        ('software', 'ПО/Сервисы'),
+        ('equipment', 'Оборудование'),
+        ('tax', 'Налоги'),
         ('other', 'Другое')
-    ])
+    ], default='other')
     
     description = models.TextField(blank=True, null=True)
     is_essential = models.BooleanField(default=False, help_text='Is this an essential expense?')
+    source_file = models.ForeignKey('UploadedFile', on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses')
     
     # Goal impact
     impacts_goal = models.ForeignKey(UserGoal, on_delete=models.SET_NULL, null=True, blank=True,
                                     help_text='Goal this expense affects')
     
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', 'date']),
+            models.Index(fields=['source_file']),
+        ]
     
     def __str__(self):
         return f"{self.expense_type}: {self.amount} on {self.date}"

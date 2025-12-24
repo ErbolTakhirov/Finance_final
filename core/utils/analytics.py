@@ -282,6 +282,7 @@ def compute_financial_memory(user) -> Dict[str, Any]:
         'expense_events': [],
     })
 
+    # Use getattr for safety or direct field access if we are sure
     for inc in Income.objects.filter(user=user).select_related(None):
         mk = _month_key(inc.date)
         month_data = months[mk]
@@ -289,7 +290,7 @@ def compute_financial_memory(user) -> Dict[str, Any]:
         month_data['income_total'] += amount
         month_data['income_count'] += 1
         month_data['transaction_count'] += 1
-        cat = inc.category or 'other'
+        cat = getattr(inc, 'income_type', 'other') or 'other'
         month_data['income_by_cat'][cat] += amount
 
     for exp in Expense.objects.filter(user=user).select_related(None):
@@ -299,7 +300,7 @@ def compute_financial_memory(user) -> Dict[str, Any]:
         month_data['expense_total'] += amount
         month_data['expense_count'] += 1
         month_data['transaction_count'] += 1
-        cat = exp.category or 'other'
+        cat = getattr(exp, 'expense_type', 'other') or 'other'
         month_data['expense_by_cat'][cat] += amount
         month_data['expense_events'].append({
             'id': exp.id,
@@ -380,21 +381,14 @@ def compute_financial_memory(user) -> Dict[str, Any]:
 
 
 def update_user_financial_memory(user, force_refresh: bool = False) -> Dict[str, Any]:
-    profile = _ensure_profile(user)
-    if not force_refresh and profile.financial_memory:
-        return profile.financial_memory
-
-    memory = compute_financial_memory(user)
-    profile.financial_memory = memory
-    profile.save(update_fields=['financial_memory', 'updated_at'])
-    return memory
+    # Since UserProfile no longer has financial_memory, we just compute it.
+    # If we need persistence, we should add the field back or use a different model.
+    # For now, on-the-fly computation.
+    return compute_financial_memory(user)
 
 
 def get_user_financial_memory(user, force_refresh: bool = False) -> Dict[str, Any]:
-    profile = _ensure_profile(user)
-    if force_refresh or not profile.financial_memory:
-        return update_user_financial_memory(user, force_refresh=True)
-    return profile.financial_memory
+    return compute_financial_memory(user)
 
 
 PROMPT_INSTRUCTION_BLOCK = """

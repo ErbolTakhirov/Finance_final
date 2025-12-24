@@ -210,25 +210,8 @@ class EnhancedFinancialAdvisor:
             system_instruction=system_prompt  # <-- Передаем наш кастомный промпт
         )
         
-        # 6. Сохраняем в сессию если есть
+        # 6. Обновляем timestamp сессии если есть
         if self.session:
-            # Сохраняем запрос пользователя
-            ChatMessage.objects.create(
-                session=self.session,
-                role='user',
-                content=user_query
-            )
-            
-            # Сохраняем ответ
-            from core.llm import _compute_content_hash
-            ChatMessage.objects.create(
-                session=self.session,
-                role='assistant',
-                content=response,
-                content_hash=_compute_content_hash(response)
-            )
-            
-            # Обновляем timestamp сессии
             self.session.save()
         
         return {

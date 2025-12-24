@@ -94,9 +94,15 @@ def ai_chat_api_v2(request):
         session.save()
     
     try:
-        # ===================================
-        # ИСПОЛЬЗУЕМ НОВЫЙ УЛУЧШЕННЫЙ СОВЕТНИК
-        # ===================================
+        # 1. Сохраняем сообщение пользователя
+        ChatMessage.objects.create(
+            session=session,
+            role='user',
+            content=msg,
+            content_hash=_compute_content_hash(msg)
+        )
+
+        # 2. ИСПОЛЬЗУЕМ НОВЫЙ УЛУЧШЕННЫЙ СОВЕТНИК
         result = get_financial_advice(
             user=request.user,
             query=msg,
@@ -109,6 +115,14 @@ def ai_chat_api_v2(request):
         query_type = result.get('query_type', 'general')
         context_used = result.get('context_used', {})
         metadata = result.get('metadata', {})
+        
+        # 3. Сохраняем сообщение ассистента
+        assistant_msg = ChatMessage.objects.create(
+            session=session,
+            role='assistant',
+            content=reply,
+            content_hash=_compute_content_hash(reply)
+        )
         
         # Извлекаем actionable советы
         actionable_items = parse_actionable_items(reply)

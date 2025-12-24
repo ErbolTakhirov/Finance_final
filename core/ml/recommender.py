@@ -7,10 +7,11 @@ def build_recommendations(incomes_qs, expenses_qs):
 
     # 1) Excessive spend in any category > 40% of total expenses
     total_expense = expenses_qs.aggregate(total=Sum('amount'))['total'] or 0
-    by_cat = expenses_qs.values('category').annotate(total=Sum('amount')).order_by('-total')
+    # Use expense_type instead of category
+    by_cat = expenses_qs.values('expense_type').annotate(total=Sum('amount')).order_by('-total')
     for row in by_cat:
         if total_expense and row['total'] / total_expense > 0.4:
-            recs.append(f"Слишком высокие расходы по категории '{row['category']}'. Рассмотрите оптимизацию затрат.")
+            recs.append(f"Слишком высокие расходы по категории '{row['expense_type']}'. Рассмотрите оптимизацию затрат.")
 
     # 2) Income trend decrease: compare last 3 months vs previous 3
     def monthly(qs):

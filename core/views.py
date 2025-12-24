@@ -103,7 +103,7 @@ def _compute_monthly_summary(user) -> dict:
         })
         m['income_total'] += float(inc.amount)
         m['tx_count'] += 1
-        cat = inc.category or 'other'
+        cat = getattr(inc, 'income_type', 'other')
         m['income_by_cat'][cat] = m['income_by_cat'].get(cat, 0.0) + float(inc.amount)
     # Из расходов
     for exp in Expense.objects.filter(user=user):
@@ -117,7 +117,7 @@ def _compute_monthly_summary(user) -> dict:
         })
         m['expense_total'] += float(exp.amount)
         m['tx_count'] += 1
-        cat = exp.category or 'other'
+        cat = getattr(exp, 'expense_type', 'other')
         m['expense_by_cat'][cat] = m['expense_by_cat'].get(cat, 0.0) + float(exp.amount)
 
     # Топ категории и очистка
@@ -301,7 +301,11 @@ def records_api(request):
         for obj in qs[:1000]:
             data = {'id': obj.id, 'type': type_name}
             for name in fields:
-                data[name] = getattr(obj, name)
+                val = getattr(obj, name, None)
+                if name in ['income_type', 'expense_type']:
+                    data['category'] = val
+                else:
+                    data[name] = val
             # simple text search across description/title/params
             blob = ' '.join(str(v) for v in data.values()).lower()
             if search and search not in blob:
@@ -313,9 +317,9 @@ def records_api(request):
 
     # Фильтруем только данные текущего пользователя
     if 'income' in types:
-        add_items(Income.objects.filter(user=request.user).order_by('-date', '-id'), 'income', ['amount', 'date', 'category', 'description'])
+        add_items(Income.objects.filter(user=request.user).order_by('-date', '-id'), 'income', ['amount', 'date', 'income_type', 'description'])
     if 'expense' in types:
-        add_items(Expense.objects.filter(user=request.user).order_by('-date', '-id'), 'expense', ['amount', 'date', 'category', 'description'])
+        add_items(Expense.objects.filter(user=request.user).order_by('-date', '-id'), 'expense', ['amount', 'date', 'expense_type', 'description'])
     if 'event' in types:
         add_items(Event.objects.filter(user=request.user).order_by('-date', '-id'), 'event', ['date', 'title', 'description'])
     if 'document' in types:
@@ -468,8 +472,13 @@ def dashboard_data_api(request):
             expense_ma.append(None)
     
     # Данные по категориям (для pie/bar charts)
-    exp_by_cat = expenses.values('category').annotate(total=Sum('amount')).order_by('-total')
-    inc_by_cat = incomes.values('category').annotate(total=Sum('amount')).order_by('-total')
+    # Using 'expense_type' alias as 'category'
+    exp_by_cat = expenses.values('expense_type').annotate(total=Sum('amount')).order_by('-total')
+    # Transform keys to match expected frontend 'category'
+    exp_by_cat = [{'category': x['expense_type'], 'total': x['total']} for x in exp_by_cat]
+
+    inc_by_cat = incomes.values('income_type').annotate(total=Sum('amount')).order_by('-total')
+    inc_by_cat = [{'category': x['income_type'], 'total': x['total']} for x in inc_by_cat]
     
     # Аномалии и события - фильтруем по периоду
     anomalies = detect_anomalies_automatically(request.user)
@@ -597,29 +606,30 @@ def ai_insights_api(request):
     profit = income_total - expense_total
 
     # Simple forecast (next month profit)
-    next_profit = forecast_next_month_profit(incomes, expenses)
+    next_profit_data = forecast_next_month_profit(incomes, expenses, user=request.user)
 
     # Recommendations
     recommendations = build_recommendations(incomes, expenses)
 
     # Alerts: expense categories above rolling average
     alerts = []
-    exp_by_cat = expenses.values('category').annotate(total=Sum('amount')).order_by('-total')
+    exp_by_cat = expenses.values('expense_type').annotate(total=Sum('amount')).order_by('-total')
     avg_expense = (expense_total / max(1, exp_by_cat.count())) if exp_by_cat else 0
     for row in exp_by_cat:
+        cat_name = row['expense_type']
         cat_total = float(row['total'] or 0)
         if avg_expense and cat_total > avg_expense * 1.5:
             alerts.append({
                 'type': 'expense_spike',
-                'message': f"Расходы в категории '{row['category']}' выше среднего",
+                'message': f"Расходы в категории '{cat_name}' выше среднего",
                 'severity': 'warning',
-                'category': row['category'],
+                'category': cat_name,
                 'value': cat_total,
             })
 
     # Category breakdown for charts
     cat_breakdown = [
-        {'category': r['category'], 'total': float(r['total'] or 0)} for r in exp_by_cat
+        {'category': r['expense_type'], 'total': float(r['total'] or 0)} for r in exp_by_cat
     ]
 
     return JsonResponse({
@@ -628,9 +638,7 @@ def ai_insights_api(request):
             'expense_total': round(expense_total, 2),
             'profit': round(profit, 2),
         },
-        'forecast': {
-            'next_month_profit': next_profit,
-        },
+        'forecast': next_profit_data,
         'recommendations': recommendations,
         'alerts': alerts,
         'breakdowns': {
@@ -644,10 +652,14 @@ def _serialize_transactions_csv(incomes_qs, expenses_qs) -> str:
     lines = ["type,date,amount,category,description"]
     for o in incomes_qs:
         desc = (o.description or '').replace('\n', ' ').replace(',', ' ')
-        lines.append(f"income,{o.date},{float(o.amount)},{o.category},{desc}")
+        # Use income_type instead of category
+        cat = getattr(o, 'income_type', 'other')
+        lines.append(f"income,{o.date},{float(o.amount)},{cat},{desc}")
     for o in expenses_qs:
         desc = (o.description or '').replace('\n', ' ').replace(',', ' ')
-        lines.append(f"expense,{o.date},{float(o.amount)},{o.category},{desc}")
+        # Use expense_type instead of category
+        cat = getattr(o, 'expense_type', 'other')
+        lines.append(f"expense,{o.date},{float(o.amount)},{cat},{desc}")
     return "\n".join(lines)
 
 
@@ -1160,11 +1172,16 @@ def user_settings_api(request):
     persist: encryption_enabled, local_mode_only в профиле, остальное в сессии.
     """
     # Ensure profile exists
-    profile = getattr(request.user, 'profile', None)
+    profile = getattr(request.user, 'teen_profile', None)
+    if profile is None:
+        # Fallback to 'profile' just in case or try to create
+        profile = getattr(request.user, 'profile', None)
+        
     if profile is None:
         from django.contrib.auth.models import User
         from .models import UserProfile
-        profile = UserProfile.objects.create(user=request.user)
+        # Use get_or_create to avoid race conditions and IntegrityError
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
 
     if request.method == 'GET':
         return JsonResponse({
@@ -1284,12 +1301,10 @@ class IncomeListView(ListView):
         files = UploadedFile.objects.filter(
             user=self.request.user,
             file_type__in=['csv', 'xlsx', 'xls']
-        ).annotate(
-            income_count=Count('incomes'),
-            expense_count=Count('expenses')
         ).order_by('-uploaded_at')
         context['source_files'] = files
-        context['selected_file_id'] = self.request.GET.get('file_id')
+        file_id = self.request.GET.get('file_id')
+        context['selected_file_id'] = int(file_id) if file_id and file_id.isdigit() else None
         return context
 
 
@@ -1386,12 +1401,10 @@ class ExpenseListView(ListView):
         files = UploadedFile.objects.filter(
             user=self.request.user,
             file_type__in=['csv', 'xlsx', 'xls']
-        ).annotate(
-            income_count=Count('incomes'),
-            expense_count=Count('expenses')
         ).order_by('-uploaded_at')
         context['source_files'] = files
-        context['selected_file_id'] = self.request.GET.get('file_id')
+        file_id = self.request.GET.get('file_id')
+        context['selected_file_id'] = int(file_id) if file_id and file_id.isdigit() else None
         return context
 
 
@@ -2294,4 +2307,41 @@ def export_chat_markdown(request, session_id):
     response = HttpResponse(''.join(md_lines), content_type='text/markdown; charset=utf-8')
     response['Content-Disposition'] = f'attachment; filename="chat_{session.session_id[:8]}.md"'
     return response
+
+@login_required
+def ai_reclassify_others(request):
+    """
+    Finds all 'other' transactions for the user and tries to reclassify them using AI.
+    """
+    from core.utils.ai_utils import ai_categorize_batch
+    
+    other_incomes = list(Income.objects.filter(user=request.user, income_type='other'))
+    other_expenses = list(Expense.objects.filter(user=request.user, expense_type='other'))
+    
+    if not other_incomes and not other_expenses:
+        return JsonResponse({'ok': True, 'message': 'Нет транзакций в категории "Другое"'})
+    
+    reclassified_count = 0
+    
+    # Process in chunks to avoid huge prompts
+    def process_batch(items, item_type):
+        nonlocal reclassified_count
+        chunk_size = 20
+        for i in range(0, len(items), chunk_size):
+            chunk = items[i:i + chunk_size]
+            transactions_data = [{'description': it.description or ''} for it in chunk]
+            ai_cats = ai_categorize_batch(transactions_data, item_type)
+            for it, cat in zip(chunk, ai_cats):
+                if cat != 'other':
+                    if item_type == 'income': 
+                        it.income_type = cat
+                    else:
+                        it.expense_type = cat
+                    it.save()
+                    reclassified_count += 1
+
+    process_batch(other_incomes, 'income')
+    process_batch(other_expenses, 'expense')
+                
+    return JsonResponse({'ok': True, 'message': f'Обработано {len(other_incomes) + len(other_expenses)} транзакций. Изменено категорий: {reclassified_count}'})
 

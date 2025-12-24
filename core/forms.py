@@ -200,9 +200,7 @@ class CustomUserCreationForm(UserCreationForm):
             # Создаём профиль пользователя
             from .models import UserProfile
             profile = UserProfile.objects.create(
-                user=user,
-                encryption_enabled=True,
-                local_mode_only=False
+                user=user
             )
         return user
 

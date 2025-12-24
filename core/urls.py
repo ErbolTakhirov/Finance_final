@@ -25,6 +25,7 @@ urlpatterns = [
     path('api/ai/confidence/', views.ai_confidence_score, name='ai_confidence'),  # Confidence Score
     path('api/ai/health-score/', views.financial_health_score, name='health_score'),  # Health Score
     path('api/ai/reasoning/', views.ai_explain_reasoning, name='ai_reasoning'),  # Chain of Thought
+    path('api/ai/reclassify/', views.ai_reclassify_others, name='ai_reclassify'),
     
     # Авторизация
     path('register/', views.register_view, name='register'),

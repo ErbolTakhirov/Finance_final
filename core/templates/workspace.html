@@ -1075,33 +1075,31 @@
 
       // Show loading
       const loadingId = addMessage('assistant', '...', true);
+      input.disabled = true;
+      sendButton.disabled = true;
 
       try {
         const willUseLocal = false;
         const anonymize = true;
-        // Модель теперь берется из настроек сервера (settings.LLM_MODEL)
-        // По умолчанию используется бесплатная модель: deepseek-chat-v3.1:free
 
         if (!willUseLocal && !anonymize) {
           const proceed = confirm('Внимание: данные будут отправлены в облако без анонимизации. Продолжить?');
 
           if (!proceed) {
             removeMessage(loadingId);
+            input.disabled = false;
+            sendButton.disabled = false;
             return;
           }
         }
 
-        // JSON body + encrypted fetch wrapper
         const csrftoken = getCookie('csrftoken');
-
         const response = await fetch('/ai/chat/', {
-
           method: 'POST',
           headers: {
-            'X-CSRFToken': csrftoken, 'Content-Type': 'application/json'
-          }
-
-          ,
+            'X-CSRFToken': csrftoken, 
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify({
             message,
             session_id: sessionId,
@@ -1113,18 +1111,12 @@
         const data = await response.json();
 
         if (data.ok) {
-
-          // Update session ID
           if (data.session_id) {
             sessionId = data.session_id;
             localStorage.setItem('chatSessionId', sessionId);
           }
-
-          // Remove loading, add response
           removeMessage(loadingId);
           addMessage('assistant', data.reply);
-
-          // Visuals are rendered in chat by AI output now
         } else {
           removeMessage(loadingId);
           addMessage('assistant', `Ошибка: ${data.error || 'Неизвестная ошибка'}`);
@@ -1132,6 +1124,10 @@
       } catch (error) {
         removeMessage(loadingId);
         addMessage('assistant', `Ошибка соединения: ${error.message}`);
+      } finally {
+        input.disabled = false;
+        sendButton.disabled = false;
+        input.focus();
       }
     }
 
