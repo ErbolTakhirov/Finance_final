@@ -374,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         try {
             // Send to AI
-            const response = await fetch('/teen/api/chat/', {
+            const response = await fetch('{% url "teen:api_chat" %}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

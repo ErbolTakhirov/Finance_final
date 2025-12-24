@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load core_tags %}
+{% block title %}Обучение - FinBilim 2025{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="teen-card p-4">
+            <h1 class="h2 mb-2"><i class="bi bi-book me-2"></i>Финансовое обучение</h1>
+            <p class="text-muted mb-0">Повышайте свой Financial IQ с помощью интерактивных уроков.</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    {% if modules %}
+        {% for module in modules %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="teen-card h-100 p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="badge bg-{% if module.difficulty == 'beginner' %}success{% elif module.difficulty == 'intermediate' %}warning{% else %}danger{% endif %}">
+                        {{ module.get_difficulty_display }}
+                    </span>
+                    <span class="text-muted small"><i class="bi bi-clock me-1"></i>{{ module.estimated_time }} мин</span>
+                </div>
+                <h3 class="h5 mb-2">{{ module.title }}</h3>
+                <p class="text-muted small mb-4">{{ module.description|truncatechars:100 }}</p>
+                
+                {% with progress=user_progress|get_item:module.id %}
+                {% if progress.passed %}
+                    <div class="alert alert-success py-2 px-3 mb-3 small">
+                        <i class="bi bi-check-circle me-1"></i>Пройдено! Лучший счет: {{ progress.best_score }}%
+                    </div>
+                {% elif progress.attempts > 0 %}
+                    <div class="alert alert-warning py-2 px-3 mb-3 small">
+                        <i class="bi bi-exclamation-circle me-1"></i>Попыток: {{ progress.attempts }}. Нужно 70% для прохождения.
+                    </div>
+                {% endif %}
+                {% endwith %}
+                
+                <a href="{% url 'teen:module_detail' module.id %}" class="btn btn-outline-primary w-100 mt-auto">
+                    {% if user_progress|get_item:module.id|get_item:'passed' %}Повторить{% else %}Начать урок{% endif %}
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12 text-center py-5">
+            <div class="teen-card p-5">
+                <i class="bi bi-journal-x" style="font-size: 4rem; color: #d1d5db;"></i>
+                <h4 class="mt-3">Уроки скоро появятся</h4>
+                <p class="text-muted">Мы готовим для вас увлекательные материалы по финансовой грамотности.</p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

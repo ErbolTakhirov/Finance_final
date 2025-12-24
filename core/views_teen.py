@@ -835,3 +835,24 @@ def toggle_demo_mode(request):
             messages.error(request, "Произошла ошибка при изменении режима")
     
     return redirect('teen:dashboard')
+@login_required
+def refresh_stats(request):
+    """
+    API endpoint to refresh dashboard stats
+    """
+    try:
+        user = request.user
+        from .ai_services.gamification import gamification_engine
+        gamification_data = gamification_engine.get_user_dashboard_data(user)
+        
+        return JsonResponse({
+            'success': True,
+            'financial_iq': gamification_data.get('financial_iq_score', 0),
+            'current_streak': gamification_data.get('current_streak', 0),
+            'total_points': gamification_data.get('total_points', 0),
+        })
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error refreshing stats: {e}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)

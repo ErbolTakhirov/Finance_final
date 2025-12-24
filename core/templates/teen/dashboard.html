@@ -507,7 +507,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Auto-refresh stats every 30 seconds
     setInterval(function() {
-        fetch('/teen/api/refresh-stats/')
+        fetch('{% url "teen:refresh_stats" %}')
             .then(response => response.json())
             .then(data => {
                 if (data.success) {

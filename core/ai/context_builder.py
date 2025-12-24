@@ -9,6 +9,13 @@ from django.db.models import Sum, Avg, Count, Q
 from collections import defaultdict
 
 from core.models import Income, Expense, ChatMessage
+try:
+    from finance.models import Transaction as FinanceTransaction
+    from goals.models import Goal as UserGoal
+except ImportError:
+    FinanceTransaction = None
+    UserGoal = None
+
 from core.utils.analytics import (
     get_user_financial_memory,
     _format_currency,
@@ -180,26 +187,48 @@ class ContextBuilder:
             incomes = Income.objects.filter(query_filter).order_by('-date')[:10]
             expenses = Expense.objects.filter(query_filter).order_by('-date')[:10]
             
+            # Добавляем данные из новой структуры если она есть
+            if FinanceTransaction:
+                v2_transactions = FinanceTransaction.objects.filter(query_filter).order_by('-date')[:10]
+            else:
+                v2_transactions = []
+            
             lines = ["## 💰 Последние транзакции"]
             
             if categories:
                 lines.append(f"\n**Фильтр:** {', '.join(categories)}")
             
-            if incomes.exists():
+            if incomes.exists() or (FinanceTransaction and v2_transactions.filter(type='income').exists()):
                 lines.append("\n**Доходы:**")
+                # Legacy incomes
                 for inc in incomes[:5]:
                     lines.append(
                         f"- {inc.date.strftime('%d.%m.%Y')}: "
                         f"{_format_currency(inc.amount)} ({inc.category}) - {inc.description or 'без описания'}"
                     )
+                # v2 incomes
+                if FinanceTransaction:
+                    for tx in v2_transactions.filter(type='income')[:5]:
+                        lines.append(
+                            f"- {tx.date.strftime('%d.%m.%Y')}: "
+                            f"{_format_currency(tx.amount)} ({tx.category}) [v2] - {tx.description or 'без описания'}"
+                        )
             
-            if expenses.exists():
+            if expenses.exists() or (FinanceTransaction and v2_transactions.filter(type='expense').exists()):
                 lines.append("\n**Расходы:**")
+                # Legacy expenses
                 for exp in expenses[:5]:
                     lines.append(
                         f"- {exp.date.strftime('%d.%m.%Y')}: "
                         f"{_format_currency(exp.amount)} ({exp.category}) - {exp.description or 'без описания'}"
                     )
+                # v2 expenses
+                if FinanceTransaction:
+                    for tx in v2_transactions.filter(type='expense')[:5]:
+                        lines.append(
+                            f"- {tx.date.strftime('%d.%m.%Y')}: "
+                            f"{_format_currency(tx.amount)} ({tx.category}) [v2] - {tx.description or 'без описания'}"
+                        )
             
             if not incomes.exists() and not expenses.exists():
                 lines.append("\n_Транзакции не найдены по указанным фильтрам_")
@@ -210,9 +239,24 @@ class ContextBuilder:
     
     def _build_goals_section(self) -> str:
         """Строит секцию с целями пользователя"""
-        # Здесь можно добавить модель Goals в будущем
-        # Пока заглушка
-        return ""
+        try:
+            if not UserGoal:
+                return ""
+            
+            goals = UserGoal.objects.filter(user=self.user)
+            if not goals.exists():
+                return "## 🎯 Финансовые цели\n\n_Цели пока не установлены_"
+            
+            lines = ["## 🎯 Финансовые цели"]
+            for goal in goals:
+                progress = (goal.current_saved / goal.target_amount) * 100 if goal.target_amount > 0 else 0
+                lines.append(
+                    f"- **{goal.title}**: {goal.current_saved} / {goal.target_amount} "
+                    f"({progress:.1f}%) - Дедлайн: {goal.target_date} - Статус: {goal.status}"
+                )
+            return "\n".join(lines)
+        except Exception as e:
+            return f"## 🎯 Цели\n\n_Ошибка: {e}_"
     
     def _build_user_profile_section(self) -> str:
         """Строит секцию с профилем поведения пользователя"""
