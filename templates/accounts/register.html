@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Регистрация - SB Finance AI{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="app-card p-5">
+            <h2 class="app-section-title mb-4">Регистрация</h2>
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-primary w-100 mt-3">Зарегистрироваться</button>
+            </form>
+            <p class="mt-4 text-center muted">Уже есть аккаунт? <a href="{% url 'login' %}" class="text-primary">Войти</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

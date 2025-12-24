@@ -19,6 +19,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'accounts.apps.AccountsConfig',
+    'finance.apps.FinanceConfig',
+    'goals.apps.GoalsConfig',
+    'ai.apps.AiConfig',
     'core',
 ]
 
@@ -37,7 +41,7 @@ ROOT_URLCONF = 'sb_finance.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -205,7 +209,7 @@ LLM_PROMPT_TEMPLATE = os.getenv('LLM_PROMPT_TEMPLATE', (
 # НАСТРОЙКИ АВТОРИЗАЦИИ
 # ============================================================================
 LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 # ============================================================================
