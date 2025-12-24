@@ -32,7 +32,7 @@ class GoalService:
         target_amount: Decimal,
         target_date: date,
     ) -> Goal:
-        goal = Goal.objects.create(
+        goal = Goal(
             user=user,
             title=title,
             description=description,

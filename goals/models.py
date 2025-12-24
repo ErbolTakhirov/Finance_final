@@ -41,21 +41,36 @@ class Goal(models.Model):
     def clean(self):
         if self.target_amount <= 0:
             raise ValidationError({'target_amount': 'Target amount must be greater than 0'})
-        if self.target_date <= timezone.now().date():
+        # For active goals the target date must be in the future.
+        # For achieved/failed goals we allow historical dates.
+        if self.status == 'active' and self.target_date <= timezone.now().date():
             raise ValidationError({'target_date': 'Target date must be in the future'})
 
     @property
     def current_saved(self) -> Decimal:
-        """Current saved amount computed from cumulative monthly profits.
+        """Current saved amount computed from net profit since goal creation.
 
-        For a goal-centric accountant demo we treat "saved" as net profit accumulated
-        across months available in the system.
+        In this version of SB FINANCE AI we treat monthly profit as the user's
+        "free cashflow" that can be allocated to goals.
         """
         from finance.models import MonthlySummary
 
-        summaries = MonthlySummary.objects.filter(user=self.user)
+        start_month = self.created_at.strftime('%Y-%m')
+        summaries = MonthlySummary.objects.filter(user=self.user, month_key__gte=start_month)
         total_profit = summaries.aggregate(total=models.Sum('profit'))['total'] or Decimal('0')
         return max(Decimal('0'), total_profit)
+
+    @property
+    def projected_date_if_current_trend(self):
+        from goals.services import GoalService
+
+        return GoalService.calculate_progress(self).projected_date
+
+    @property
+    def probability_of_success(self) -> int:
+        from goals.services import GoalService
+
+        return GoalService.calculate_progress(self).probability_of_success
 
     @property
     def progress_percent(self) -> int:

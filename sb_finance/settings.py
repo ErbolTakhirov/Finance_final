@@ -208,9 +208,9 @@ LLM_PROMPT_TEMPLATE = os.getenv('LLM_PROMPT_TEMPLATE', (
 # ============================================================================
 # НАСТРОЙКИ АВТОРИЗАЦИИ
 # ============================================================================
-LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/login/'
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/dashboard/'
+LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 # ============================================================================
 # TEEN FINANCE AI - FinBilim 2025 Hackathon Settings

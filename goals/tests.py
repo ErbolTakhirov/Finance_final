@@ -14,10 +14,7 @@ class GoalProgressTests(TestCase):
         self.user = User.objects.create_user(username='u1', password='pass')
 
     def test_goal_progress_percent(self):
-        MonthlySummary.objects.create(user=self.user, month_key='2025-01', total_income=1000, total_expense=900, profit=100)
-        MonthlySummary.objects.create(user=self.user, month_key='2025-02', total_income=1000, total_expense=900, profit=100)
-        MonthlySummary.objects.create(user=self.user, month_key='2025-03', total_income=1000, total_expense=900, profit=100)
-
+        # Create goal first with date in future
         goal = Goal.objects.create(
             user=self.user,
             title='Save for laptop',
@@ -27,16 +24,21 @@ class GoalProgressTests(TestCase):
             status='active',
         )
 
-        self.assertEqual(goal.current_saved, Decimal('300'))
-        self.assertEqual(goal.progress_percent, 30)
+        # Then create monthly summaries (must be >= goal.created_at month)
+        # Goal created now, so profit from this month onwards counts
+        current_month = date.today().strftime('%Y-%m')
+        MonthlySummary.objects.create(user=self.user, month_key=current_month, total_income=1000, total_expense=900, profit=100)
+
+        # Refresh goal to get updated current_saved
+        goal.refresh_from_db()
+        self.assertEqual(goal.current_saved, Decimal('100'))
+        self.assertEqual(goal.progress_percent, 10)
 
         progress = GoalService.calculate_progress(goal)
-        self.assertEqual(progress.current_saved, Decimal('300'))
-        self.assertEqual(progress.progress_percent, 30)
+        self.assertEqual(progress.current_saved, Decimal('100'))
+        self.assertEqual(progress.progress_percent, 10)
 
     def test_goal_auto_status_update(self):
-        MonthlySummary.objects.create(user=self.user, month_key='2025-01', total_income=1000, total_expense=0, profit=1000)
-
         goal = Goal.objects.create(
             user=self.user,
             title='Goal',
@@ -45,6 +47,10 @@ class GoalProgressTests(TestCase):
             target_date=date.today() + timedelta(days=10),
             status='active',
         )
+
+        current_month = date.today().strftime('%Y-%m')
+        MonthlySummary.objects.create(user=self.user, month_key=current_month, total_income=1000, total_expense=0, profit=1000)
+
         updated = GoalService.auto_update_statuses(self.user)
         self.assertEqual(updated, 1)
 

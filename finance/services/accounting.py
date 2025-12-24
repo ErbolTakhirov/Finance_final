@@ -34,7 +34,7 @@ class AccountingService:
         source: str = "manual",
         is_verified: bool = True,
     ) -> Transaction:
-        tx = Transaction.objects.create(
+        tx = Transaction(
             user=user,
             date=date,
             amount=amount,
@@ -45,6 +45,8 @@ class AccountingService:
             is_verified=is_verified,
             month_key=date.strftime('%Y-%m'),
         )
+        tx.full_clean()
+        tx.save()
         AccountingService.recalculate_month(user=user, month_key=tx.month_key)
         return tx
 

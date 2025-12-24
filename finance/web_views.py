@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.utils import timezone
 
+from accounts.models import UserProfile
 from finance.forms import TransactionForm
 from finance.models import Transaction, MonthlySummary
 from finance.services.accounting import AccountingService
