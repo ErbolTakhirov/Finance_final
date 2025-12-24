@@ -27,6 +27,7 @@ def ai_categorize_batch(transactions: List[Dict], type_name: str) -> List[str]:
         desc = t.get('description', '') or t.get('category', '') or 'No description'
         items_to_categorize.append(f"ID {i}: {desc}")
     
+    items_to_categorize_str = "\n".join(items_to_categorize)
     prompt = f"""
     You are a financial assistant. Categorize the following {type_name} transactions into the given categories.
     
@@ -34,7 +35,7 @@ def ai_categorize_batch(transactions: List[Dict], type_name: str) -> List[str]:
     {choices_str}
     
     Transactions:
-    {"\n".join(items_to_categorize)}
+    {items_to_categorize_str}
     
     Return ONLY a JSON object where keys are the IDs from the list and values are the internal category keys (e.g., 'rent', 'food').
     Example: {{"0": "rent", "1": "food"}}
