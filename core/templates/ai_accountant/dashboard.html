@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}AI Бухгалтер - Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="app-section-title">Привет, {{ user.username }}! Твой AI Бухгалтер готов.</h2>
+    <button id="genReportBtn" class="btn btn-primary me-2">
+        <i class="bi bi-robot"></i> Сгенерировать AI-отчет за месяц
+    </button>
+    <a href="{% url 'ai_accountant_forecast' %}" class="btn btn-outline-primary">
+        <i class="bi bi-graph-up"></i> Прогноз и Анализ
+    </a>
+    <a href="{% url 'ai_accountant_setup_demo' %}" class="btn btn-outline-secondary ms-2">
+        <i class="bi bi-magic"></i> Setup Demo
+    </a>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="app-card p-3 h-100 card-gradient">
+            <h5 class="muted">Прибыль за {{ month_key }}</h5>
+            <div class="value text-primary mt-2" style="font-size: 2rem;">
+                {% if current_summary %}
+                    {{ current_summary.profit }}
+                {% else %}
+                    0.00
+                {% endif %}
+                <span style="font-size: 1rem;">{{ user.teen_profile.currency|default:"KGS" }}</span>
+            </div>
+            <div class="mt-2">
+                <small class="text-success"><i class="bi bi-arrow-up"></i> Доходы: {{ current_summary.total_income|default:0 }}</small><br>
+                <small class="text-danger"><i class="bi bi-arrow-down"></i> Расходы: {{ current_summary.total_expense|default:0 }}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="app-card p-3 h-100">
+            <h5 class="muted mb-3">Последние AI-советы</h5>
+            <div class="list-group list-group-flush">
+                {% for rec in latest_recommendations %}
+                    <div class="list-group-item bg-transparent border-0 px-0 pb-3">
+                        <div class="d-flex justify-content-between">
+                            <h6 class="mb-1 text-primary">{{ rec.get_recommendation_type_display }}</h6>
+                            <small class="text-muted">{{ rec.created_at|date:"d.m.Y" }}</small>
+                        </div>
+                        <p class="mb-0 small">{{ rec.text|truncatewords:30 }}</p>
+                    </div>
+                {% empty %}
+                    <p class="text-muted">Советов пока нет. Сгенерируйте отчет или проверьте цели!</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<h3 class="app-section-title mb-3">Активные цели</h3>
+<div class="row g-4">
+    {% for goal in active_goals %}
+    <div class="col-md-6">
+        <div class="app-card p-3">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <h5 class="mb-1">{{ goal.title }}</h5>
+                    <small class="text-muted">Дедлайн: {{ goal.target_date|date:"d.m.Y" }}</small>
+                </div>
+                <span class="badge bg-primary rounded-pill">{{ goal.progress_percentage|floatformat:0 }}%</span>
+            </div>
+            <div class="progress mb-3" style="height: 8px;">
+                <div class="progress-bar" role="progressbar" style="width: {{ goal.progress_percentage }}%"></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <small class="d-block">Накоплено: <b>{{ goal.current_amount }}</b> / {{ goal.target_amount }}</small>
+                    <small class="text-info">Вероятность: <b>{{ goal.probability_of_success }}%</b></small>
+                </div>
+                <a href="{% url 'ai_goal_detail' goal.id %}" class="btn btn-outline-primary btn-sm">Детали</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <p class="text-muted">У вас пока нет активных целей.</p>
+        <a href="{% url 'teen:create_goal' %}" class="btn btn-primary">Поставить цель</a>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- AI Report Modal -->
+<div class="modal fade" id="reportModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content app-card">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">Отчет AI-бухгалтера</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="reportLoading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2">Анализируем ваши финансы...</p>
+                </div>
+                <div id="reportContent" class="d-none">
+                    <div class="p-3 bg-light rounded" id="reportText" style="white-space: pre-wrap;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('genReportBtn').addEventListener('click', function() {
+    const modal = new bootstrap.Modal(document.getElementById('reportModal'));
+    modal.show();
+    
+    document.getElementById('reportLoading').classList.remove('d-none');
+    document.getElementById('reportContent').classList.add('d-none');
+    
+    fetch('{% url "api_ai_monthly_report" %}')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('reportLoading').classList.add('d-none');
+            document.getElementById('reportContent').classList.remove('d-none');
+            document.getElementById('reportText').innerText = data.report;
+        })
+        .catch(err => {
+            document.getElementById('reportLoading').innerText = "Ошибка при генерации отчета.";
+        });
+});
+</script>
+{% endblock %}

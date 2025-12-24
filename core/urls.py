@@ -1,6 +1,6 @@
 from django.urls import path, include
 from django.contrib.auth.views import LogoutView
-from . import views
+from . import views, views_ai_accountant
 
 urlpatterns = [
     # Главная страница и workspace
@@ -88,5 +88,16 @@ urlpatterns = [
     # AI рекомендации
     path('ai/', views.ai_recommendations, name='ai_recommendations'),
     path('documents/generate/', views.document_generate_view, name='document_generate'),
+
+    # AI Accountant MVP
+    path('accountant/', include([
+        path('dashboard/', views_ai_accountant.ai_accountant_dashboard, name='ai_accountant_dashboard'),
+        path('setup-demo/', views_ai_accountant.setup_ai_accountant_demo, name='ai_accountant_setup_demo'),
+        path('transactions/', views_ai_accountant.ai_transactions_view, name='ai_transactions'),
+        path('goal/<int:goal_id>/', views_ai_accountant.ai_goal_detail, name='ai_goal_detail'),
+        path('forecast/', views_ai_accountant.ai_forecast_page, name='ai_accountant_forecast'),
+        path('api/monthly-report/', views_ai_accountant.ai_monthly_report_api, name='api_ai_monthly_report'),
+        path('api/what-if/', views_ai_accountant.ai_forecast_whatif, name='api_ai_whatif'),
+    ])),
 ]
 

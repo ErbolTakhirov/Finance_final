@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Прогноз прибыли - AI Бухгалтер{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-md-8">
+        <div class="app-card p-4 mb-4">
+            <h3 class="app-section-title mb-4">Анализ и прогноз прибыли</h3>
+            <canvas id="profitChart" height="250"></canvas>
+        </div>
+        
+        <div class="app-card p-4">
+            <h4 class="app-section-title mb-3"><i class="bi bi-robot"></i> AI-аналитика трендов</h4>
+            <div class="p-3 bg-light rounded" style="white-space: pre-wrap;">{{ forecast_explanation }}</div>
+            
+            {% if forecast_profit %}
+            <div class="mt-4 row g-3">
+                <div class="col-md-6">
+                    <div class="p-3 border rounded text-center">
+                        <small class="text-muted d-block">Прогноз на след. месяц</small>
+                        <h3 class="mb-0 text-primary">{{ forecast_profit|floatformat:2 }}</h3>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 border rounded text-center">
+                        <small class="text-muted d-block">Точность модели</small>
+                        <h3 class="mb-0 text-success">Высокая</h3>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="app-card p-4 mb-4 card-gradient">
+            <h5 class="mb-3">Что если? (Общий прогноз)</h5>
+            <p class="small text-muted">Посмотрите, как изменения в вашем бюджете повлияют на чистую прибыль.</p>
+            
+            <div class="mb-3">
+                <label class="form-label small">Добавить доход:</label>
+                <input type="range" class="form-range" id="incomeRange" min="0" max="50000" step="1000" value="0">
+                <div class="d-flex justify-content-between">
+                    <small>0</small>
+                    <small id="incomeVal">0</small>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label small">Сократить расходы:</label>
+                <input type="range" class="form-range" id="expenseRange" min="0" max="20000" step="500" value="0">
+                <div class="d-flex justify-content-between">
+                    <small>0</small>
+                    <small id="expenseVal">0</small>
+                </div>
+            </div>
+            
+            <hr>
+            
+            <div class="text-center">
+                <small class="text-muted d-block">Прогноз прибыли с учетом изменений:</small>
+                <h2 id="newProfitTotal" class="text-primary">{{ forecast_profit|default:0|floatformat:2 }}</h2>
+            </div>
+        </div>
+        
+        <div class="app-card p-4">
+            <h5 class="mb-3">Влияние на цели</h5>
+            <div class="list-group list-group-flush">
+                {% for goal in goals %}
+                <div class="list-group-item bg-transparent px-0">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small class="fw-bold">{{ goal.title }}</small>
+                        <small class="text-muted">{{ goal.progress_percentage|floatformat:0 }}%</small>
+                    </div>
+                    <small class="d-block text-muted" style="font-size: 0.75rem;">Новая дата: <span class="new-goal-date" data-goal-id="{{ goal.id }}">По расчету</span></small>
+                </div>
+                {% empty %}
+                <p class="text-muted small">Активных целей нет.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const ctx = document.getElementById('profitChart').getContext('2d');
+const historyData = {{ history_data_json|safe }};
+
+const chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: historyData.map(d => d.month),
+        datasets: [{
+            label: 'Месячная прибыль',
+            data: historyData.map(d => d.profit),
+            backgroundColor: historyData.map(d => d.profit >= 0 ? 'rgba(25, 135, 84, 0.5)' : 'rgba(220, 53, 69, 0.5)'),
+            borderColor: historyData.map(d => d.profit >= 0 ? '#198754' : '#dc3545'),
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+function updateWhatIf() {
+    const inc = document.getElementById('incomeRange').value;
+    const exp = document.getElementById('expenseRange').value;
+    
+    document.getElementById('incomeVal').innerText = inc;
+    document.getElementById('expenseVal').innerText = exp;
+    
+    fetch(`{% url "api_ai_whatif" %}?income_change=${inc}&expense_change=${exp}`)
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('newProfitTotal').innerText = data.new_profit.toFixed(2);
+            
+            // Update all goals
+            document.querySelectorAll('.new-goal-date').forEach(el => {
+                const goalId = el.dataset.goalId;
+                fetch(`{% url "api_ai_whatif" %}?goal_id=${goalId}&income_change=${inc}&expense_change=${exp}`)
+                    .then(r => r.json())
+                    .then(gData => {
+                        el.innerText = gData.new_date;
+                    });
+            });
+        });
+}
+
+document.getElementById('incomeRange').addEventListener('input', updateWhatIf);
+document.getElementById('expenseRange').addEventListener('input', updateWhatIf);
+</script>
+{% endblock %}

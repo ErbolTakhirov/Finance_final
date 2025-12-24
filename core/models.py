@@ -82,6 +82,10 @@ class UserGoal(models.Model):
     ai_recommendation = models.TextField(blank=True, help_text='AI совет по достижению цели')
     weekly_saving_suggestion = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     
+    # New fields for AI Coach
+    projected_date_if_current_trend = models.DateField(null=True, blank=True)
+    probability_of_success = models.PositiveIntegerField(default=0, help_text='0-100%')
+
     def progress_percentage(self):
         """Calculate progress as percentage"""
         if self.target_amount == 0:
@@ -626,3 +630,97 @@ class ChatMessage(models.Model):
     
     def __str__(self) -> str:
         return f"{self.role}: {self.content[:50]}..."
+
+
+# ==========================================
+# AI ACCOUNTANT ENTITIES (HACKATHON MVP)
+# ==========================================
+
+class Transaction(models.Model):
+    """Unified transaction model for AI Accountant"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ai_transactions')
+    date = models.DateField()
+    amount = models.DecimalField(max_digits=12, decimal_places=2) # positive for income, negative for expense
+    type = models.CharField(max_length=10, choices=[('income', 'Income'), ('expense', 'Expense')])
+    category = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    source = models.CharField(max_length=50, default='manual')
+    is_verified = models.BooleanField(default=True)
+    month_key = models.CharField(max_length=7, db_index=True) # YYYY-MM
+    legacy_id = models.PositiveIntegerField(null=True, blank=True)
+    legacy_type = models.CharField(max_length=20, null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.month_key:
+            self.month_key = self.date.strftime('%Y-%m')
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.type} - {self.amount} - {self.date}"
+
+class MonthlySummary(models.Model):
+    """Aggregation for model and UI"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ai_monthly_summaries')
+    month_key = models.CharField(max_length=7, db_index=True) # YYYY-MM
+    total_income = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_expense = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    profit = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    class Meta:
+        unique_together = ['user', 'month_key']
+        verbose_name_plural = "Monthly Summaries"
+
+    def __str__(self):
+        return f"{self.user.username} - {self.month_key}: Profit {self.profit}"
+
+class AIRecommendationLog(models.Model):
+    """Log for AI advice and recommendations"""
+    TYPE_CHOICES = [
+        ('goal_progress', 'Progress towards goal'),
+        ('forecast_advice', 'Advice based on forecast'),
+        ('general_advice', 'General financial advice'),
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ai_recommendations')
+    goal = models.ForeignKey(UserGoal, on_delete=models.SET_NULL, null=True, blank=True)
+    month_key = models.CharField(max_length=7, blank=True)
+    text = models.TextField()
+    recommendation_type = models.CharField(max_length=50, choices=TYPE_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.recommendation_type} for {self.user.username} at {self.created_at}"
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=Income)
+def sync_income_to_transaction(sender, instance, created, **kwargs):
+    Transaction.objects.update_or_create(
+        user=instance.user,
+        legacy_id=instance.id,
+        legacy_type='income',
+        defaults={
+            'date': instance.date,
+            'amount': instance.amount,
+            'type': 'income',
+            'category': instance.get_income_type_display(),
+            'description': instance.description or "",
+            'source': instance.source or 'legacy'
+        }
+    )
+
+@receiver(post_save, sender=Expense)
+def sync_expense_to_transaction(sender, instance, created, **kwargs):
+    Transaction.objects.update_or_create(
+        user=instance.user,
+        legacy_id=instance.id,
+        legacy_type='expense',
+        defaults={
+            'date': instance.date,
+            'amount': -instance.amount,
+            'type': 'expense',
+            'category': instance.get_expense_type_display(),
+            'description': instance.description or "",
+            'source': 'legacy'
+        }
+    )
