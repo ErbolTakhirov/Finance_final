@@ -18,6 +18,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'accounts.apps.AccountsConfig',
+    'finance.apps.FinanceConfig',
+    'goals.apps.GoalsConfig',
+    'ai.apps.AiConfig',
     'core',
 ]
 
@@ -78,6 +83,27 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ==========================================================================
+# DRF
+# ==========================================================================
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
+
+# ==========================================================================
+# DeepSeek (separate service, OpenAI-compatible)
+# ==========================================================================
+DEEPSEEK_API_URL = os.getenv('DEEPSEEK_API_URL', '')
+DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY', '')
+DEEPSEEK_MODEL = os.getenv('DEEPSEEK_MODEL', 'deepseek-chat')
+DEEPSEEK_TIMEOUT_SECONDS = int(os.getenv('DEEPSEEK_TIMEOUT_SECONDS', '30'))
 
 # === LLM / AI SETTINGS ===
 # Вставьте ваш ключ и эндпоинт в .env или прямо здесь (для демо):

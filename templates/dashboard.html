@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard - SB FINANCE AI{% endblock %}
+
+{% block content %}
+<h1>Dashboard</h1>
+
+<div class="grid">
+  <div class="col-6">
+    <div class="card">
+      <h3>Current Month ({{ default_month_key }})</h3>
+      {% if current_summary %}
+        <table>
+          <tr><th>Income</th><td>{{ current_summary.total_income }} KGS</td></tr>
+          <tr><th>Expense</th><td>{{ current_summary.total_expense }} KGS</td></tr>
+          <tr><th>Profit</th><td>{{ current_summary.profit }} KGS</td></tr>
+        </table>
+        <button class="btn" onclick="generateMonthlyReport('{{ default_month_key }}')">Generate AI Report</button>
+        <div id="ai-report" style="margin-top:12px;"></div>
+      {% else %}
+        <p>No data for current month.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-6">
+    <div class="card">
+      <h3>Active Goals</h3>
+      {% if active_goals %}
+        {% for goal in active_goals %}
+          <div style="margin-bottom:12px;">
+            <a href="{% url 'goal_detail_page' goal.id %}"><strong>{{ goal.title }}</strong></a>
+            <div class="progress"><div style="width:{{ goal.progress_percent }}%"></div></div>
+            <small class="muted">{{ goal.progress_percent }}% | Target: {{ goal.target_amount }} KGS by {{ goal.target_date }}</small>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="muted">No active goals. <a href="{% url 'goals_page' %}">Create one</a></p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-12">
+    <div class="card">
+      <h3>Profit History</h3>
+      <canvas id="profitChart" width="600" height="200"></canvas>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const historyData = {{ history_json|safe }};
+
+if (historyData && historyData.length > 0) {
+  const canvas = document.getElementById('profitChart');
+  const ctx = canvas.getContext('2d');
+  const months = historyData.map(d => d.month);
+  const profits = historyData.map(d => d.profit);
+  const w = canvas.width, h = canvas.height;
+  const pad = 50, chartW = w - pad*2, chartH = h - pad*2;
+  const max = Math.max(...profits);
+  const min = Math.min(...profits);
+  const range = max - min || 1;
+  
+  ctx.strokeStyle = '#2563eb';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let i = 0; i < profits.length; i++) {
+    const x = pad + (i / (profits.length-1||1)) * chartW;
+    const y = pad + chartH - ((profits[i] - min) / range) * chartH;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+}
+
+async function generateMonthlyReport(monthKey) {
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = 'Generating...';
+  const div = document.getElementById('ai-report');
+  div.innerHTML = '<p class="muted">AI is analyzing...</p>';
+  
+  try {
+    const res = await fetch('/api/ai/monthly-report/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+      body: JSON.stringify({month_key: monthKey})
+    });
+    const data = await res.json();
+    if (data.report) {
+      div.innerHTML = '<pre>' + data.report + '</pre>';
+    } else {
+      div.innerHTML = '<p class="error">Error: ' + (data.error || 'Unknown') + '</p>';
+    }
+  } catch (e) {
+    div.innerHTML = '<p class="error">Error: ' + e.message + '</p>';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Generate AI Report';
+  }
+}
+</script>
+{% endblock %}

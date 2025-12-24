@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block title %}Goal - {{ goal.title }}{% endblock %}
+
+{% block content %}
+<h1>{{ goal.title }}</h1>
+<p class="muted">{{ goal.description }}</p>
+
+<div class="grid">
+  <div class="col-6">
+    <div class="card">
+      <h3>Progress</h3>
+      <p><strong>{{ progress.progress_percent }}%</strong> (saved {{ progress.current_saved }} KGS of {{ goal.target_amount }} KGS)</p>
+      <div class="progress"><div style="width:{{ progress.progress_percent }}%"></div></div>
+
+      <p style="margin-top:10px;">
+        Deadline: <strong>{{ goal.target_date }}</strong> | Status: <span class="pill">{{ goal.status }}</span>
+      </p>
+
+      <p>
+        Projected date (current trend):
+        <strong>
+          {% if progress.projected_date %}
+            {{ progress.projected_date }}
+          {% else %}
+            N/A
+          {% endif %}
+        </strong>
+        <br/>
+        Probability of success: <strong>{{ progress.probability_of_success }}%</strong>
+      </p>
+
+      <button class="btn" onclick="getGoalAdvice({{ goal.id }})">Get AI goal advice</button>
+      <div id="goalAdvice" style="margin-top:12px;"></div>
+    </div>
+  </div>
+
+  <div class="col-6">
+    <div class="card">
+      <h3>Forecast</h3>
+      {% if forecast.status == 'insufficient_data' %}
+        <p class="muted">Insufficient data (&lt; 3 months). Add more transactions.</p>
+      {% else %}
+        <p class="muted">Predicted next month profit: <strong>{{ forecast.predicted_profit }}</strong></p>
+        <p class="muted">Range: {{ forecast.lower }} .. {{ forecast.upper }}</p>
+      {% endif %}
+
+      <button class="btn btn-secondary" onclick="getForecast()">Get AI forecast explanation</button>
+      <div id="forecastExplanation" style="margin-top:12px;"></div>
+    </div>
+
+    <div class="card">
+      <h3>Profit history</h3>
+      <canvas id="profitChart" width="600" height="200"></canvas>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const historyData = {{ history_json|safe }};
+
+if (historyData && historyData.length > 0) {
+  const canvas = document.getElementById('profitChart');
+  const ctx = canvas.getContext('2d');
+  const profits = historyData.map(d => d.profit);
+  const w = canvas.width, h = canvas.height;
+  const pad = 50, chartW = w - pad*2, chartH = h - pad*2;
+  const max = Math.max(...profits);
+  const min = Math.min(...profits);
+  const range = max - min || 1;
+  
+  ctx.strokeStyle = '#2563eb';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let i = 0; i < profits.length; i++) {
+    const x = pad + (i / (profits.length-1||1)) * chartW;
+    const y = pad + chartH - ((profits[i] - min) / range) * chartH;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+}
+
+async function getGoalAdvice(goalId) {
+  const btn = event.target;
+  btn.disabled = true;
+  const el = document.getElementById('goalAdvice');
+  el.innerHTML = '<p class="muted">AI is analyzing your goal...</p>';
+
+  try {
+    const res = await fetch('/api/ai/goal-advice/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+      body: JSON.stringify({goal_id: goalId})
+    });
+    const data = await res.json();
+    if (data.advice) {
+      el.innerHTML = '<pre>' + data.advice + '</pre>';
+    } else {
+      el.innerHTML = '<p class="error">Error: ' + (data.error || 'Unknown') + '</p>';
+    }
+  } catch (e) {
+    el.innerHTML = '<p class="error">Error: ' + e.message + '</p>';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function getForecast() {
+  const btn = event.target;
+  btn.disabled = true;
+  const el = document.getElementById('forecastExplanation');
+  el.innerHTML = '<p class="muted">AI is explaining forecast...</p>';
+
+  try {
+    const res = await fetch('/api/ai/forecast/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+      body: JSON.stringify({})
+    });
+    const data = await res.json();
+
+    if (data.status === 'insufficient_data') {
+      el.innerHTML = '<p class="muted">' + data.message + '</p>';
+    } else if (data.explanation) {
+      el.innerHTML = '<pre>' + data.explanation + '</pre>';
+    } else {
+      el.innerHTML = '<p class="error">Error: ' + (data.error || 'Unknown') + '</p>';
+    }
+  } catch (e) {
+    el.innerHTML = '<p class="error">Error: ' + e.message + '</p>';
+  } finally {
+    btn.disabled = false;
+  }
+}
+</script>
+{% endblock %}

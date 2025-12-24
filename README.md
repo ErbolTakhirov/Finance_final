@@ -31,6 +31,9 @@
 
 ## 🚀 Быстрый старт
 
+> **Goal-Centric AI Accountant (v2):**
+> Полная архитектура с отдельными приложениями `accounts`, `finance`, `goals`, `ai` и DRF API описана в [README_GOAL_CENTRIC.md](./README_GOAL_CENTRIC.md) и [ARCHITECTURE.md](./ARCHITECTURE.md).
+
 ### Требования
 - Python 3.9+
 - PostgreSQL (рекомендовано) или SQLite (по умолчанию)
