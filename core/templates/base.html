@@ -4,100 +4,215 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}SB Finance AI{% endblock %}</title>
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
         :root {
-          --brand: #0d6efd;
-          --brand-600: #0b5ed7;
-          --ink-900: #101828;
-          --ink-700: #344054;
-          --ink-500: #667085;
-          --bg-soft: #f8fafc;
-          --card-radius: 14px;
-          --card-shadow: 0 6px 24px rgba(16,24,40,.06);
-          --gap-1: 6px; --gap-2: 10px; --gap-3: 16px; --gap-4: 24px;
+            --primary-color: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary-color: #8b5cf6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --dark-color: #1f2937;
+            --light-color: #f9fafb;
+            --gradient-primary: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
-        body { background: var(--bg-soft); color: var(--ink-900); }
-        .navbar-brand { font-weight: 800; letter-spacing: .3px; }
-        .content-wrap { padding-top: 24px; padding-bottom: 40px; }
-        .app-card { border-radius: var(--card-radius); box-shadow: var(--card-shadow); border: 1px solid rgba(16,24,40,.06); background: #fff; }
-        .app-section-title { font-weight: 700; letter-spacing: .2px; color: var(--ink-700); }
-        .btn-icon { display: inline-flex; align-items: center; gap: 6px; }
-        .chart { max-width: 100%; height: auto; border: 1px solid rgba(16,24,40,.06); border-radius: 10px; }
-        .actions { display: flex; gap: var(--gap-2); flex-wrap: wrap; align-items: center; }
-        textarea { width: 100%; min-height: 160px; }
-        .form-control, .form-select { border-radius: 10px; }
-        .alert { border-radius: 12px; }
-        .card-gradient { background: linear-gradient(180deg, rgba(13,110,253,.06), rgba(13,110,253,.02)); }
-        .footer { color: #667085; }
-        .muted { color: var(--ink-500); }
-        .grid-gutter { gap: var(--gap-4); }
-        .kpi { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: var(--gap-3); }
-        .kpi .value { font-size: 1.375rem; font-weight: 800; }
-        @media (max-width: 576px) {
-          .navbar .btn { padding: .375rem .5rem; }
-          .kpi { grid-template-columns: 1fr; }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        /* Tables */
-        .table> :not(caption)>*>* { vertical-align: middle; }
-        .table thead th { font-weight: 600; color: #475467; }
-        /* Dark mode */
-        [data-theme="dark"] { color-scheme: dark; }
-        [data-theme="dark"] body { background: #0B1220; color: #E6E8EC; }
-        [data-theme="dark"] .navbar, [data-theme="dark"] .dropdown-menu { background: #0E172A !important; }
-        [data-theme="dark"] .app-card, [data-theme="dark"] .card, [data-theme="dark"] .table { background: #0E172A; color: #E6E8EC; }
-        [data-theme="dark"] .table thead th { color: #CBD5E1; }
-        [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background: #0B1220; color: #E6E8EC; border-color: #1F2937; }
-        [data-theme="dark"] .alert { background: #10203A; border-color: #1F3A5A; color: #E6F0FF; }
-        [data-theme="dark"] .card-gradient { background: linear-gradient(180deg, rgba(13,110,253,.18), rgba(13,110,253,.05)); }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--dark-color);
+        }
+        
+        /* Navbar */
+        .teen-navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .nav-link {
+            font-weight: 500;
+            color: var(--dark-color) !important;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            color: var(--primary-color) !important;
+            transform: translateY(-1px);
+        }
+        
+        /* Cards */
+        .teen-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.3s ease;
+        }
+        
+        .teen-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        /* Buttons */
+        .btn-primary {
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            padding: 12px 24px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .btn-success {
+            background: var(--gradient-success);
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            padding: 12px 24px;
+        }
+        
+        .btn-outline-primary {
+            border: 2px solid var(--primary-color);
+            border-radius: 12px;
+            font-weight: 600;
+            padding: 10px 20px;
+            color: var(--primary-color);
+            background: transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline-primary:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        /* Main Content */
+        main {
+            padding-top: 24px;
+            padding-bottom: 40px;
+        }
+
+        .alert {
+            border-radius: 12px;
+        }
     </style>
     {% block extra_head %}{% endblock %}
-    <script>
-      (function() {
-        const saved = localStorage.getItem('theme');
-        if (saved) document.documentElement.setAttribute('data-theme', saved);
-      })();
-    </script>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'><text y='1em' font-size='96'>💼</text></svg>">
-  </head>
-  <body>
-    <nav class="navbar navbar-expand-lg navbar-light border-bottom sticky-top" style="background: #ffffffaa; backdrop-filter: blur(8px);">
-      <div class="container">
-        <a class="navbar-brand" href="/">SB Finance AI</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"><span class="navbar-toggler-icon"></span></button>
-        <div class="collapse navbar-collapse" id="mainNav">
-          {% if user.is_authenticated %}
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item"><a class="nav-link" href="{% url 'workspace' %}">Чат</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'ai_accountant_dashboard' %}">AI Бухгалтер</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Дэшборд</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'income_list' %}">Доходы</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'expense_list' %}">Расходы</a></li>
-          </ul>
-          {% endif %}
-          <div class="d-flex gap-2">
-            {% if user.is_authenticated %}
-              <span class="text-muted me-2" style="line-height: 2.2;">{{ user.username }}</span>
-              <a class="btn btn-outline-secondary btn-sm" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right"></i> Выход</a>
-            {% else %}
-              <a class="btn btn-outline-primary btn-sm" href="{% url 'login' %}"><i class="bi bi-box-arrow-in-right"></i> Вход</a>
-              <a class="btn btn-primary btn-sm" href="{% url 'register' %}"><i class="bi bi-person-plus"></i> Регистрация</a>
-            {% endif %}
-            <button id="themeToggle" class="btn btn-outline-primary btn-sm" type="button"><i class="bi bi-moon-stars"></i></button>
-          </div>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg teen-navbar sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-stars me-2"></i>FinBilim 2025
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="bi bi-house me-1"></i>Главная
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'teen:goals' %}">
+                            <i class="bi bi-bullseye me-1"></i>Цели
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'teen:ai_coach' %}">
+                            <i class="bi bi-chat-dots me-1"></i>AI Коуч
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'teen:learning' %}">
+                            <i class="bi bi-book me-1"></i>Обучение
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+                
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1"></i>{{ user.username }}
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'teen:scam_awareness' %}">
+                                <i class="bi bi-shield-check me-2"></i>Защита
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'logout' %}">
+                                <i class="bi bi-box-arrow-right me-2"></i>Выйти
+                            </a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">Вход</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-primary text-white ms-2" href="{% url 'register' %}">Регистрация</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
         </div>
-      </div>
     </nav>
-
-    <main class="content-wrap container">
+    
+    <main class="container">
       {% if messages %}
         <div class="mb-3">
           {% for message in messages %}
-            <div class="alert alert-info d-flex align-items-center gap-2" role="alert">
-              <i class="bi bi-info-circle"></i>
-              <div>{{ message }}</div>
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show teen-card border-0" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
           {% endfor %}
         </div>
@@ -106,23 +221,7 @@
       {% block content %}{% endblock %}
     </main>
 
-    <footer class="border-top py-3">
-      <div class="container d-flex justify-content-between align-items-center footer">
-        <small>© {{ now|default:2025 }} SB Finance AI</small>
-        <small>Версия интерфейса: 1.0</small>
-      </div>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-      document.getElementById('themeToggle').addEventListener('click', function() {
-        const html = document.documentElement;
-        const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        html.setAttribute('data-theme', next);
-        localStorage.setItem('theme', next);
-        this.innerHTML = next === 'dark' ? '<i class="bi bi-brightness-high"></i>' : '<i class="bi bi-moon-stars"></i>';
-      });
-    </script>
-  </body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
 </html>
-

@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}Защита от мошенничества - FinBilim 2025{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="teen-card p-4">
+            <h1 class="h2 mb-2"><i class="bi bi-shield-check me-2"></i>Защита от мошенничества</h1>
+            <p class="text-muted mb-0">Узнайте, как защитить свои деньги и распознать обман.</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-7 mb-4">
+        <div class="teen-card p-4">
+            <h3 class="h5 mb-3">Проверить сообщение</h3>
+            <p class="text-muted small">Прислали подозрительное предложение в Telegram или WhatsApp? Скопируйте текст сюда, и наш AI проанализирует его на наличие угроз.</p>
+            
+            <form id="scamCheckForm">
+                <div class="mb-3">
+                    <textarea class="form-control" id="scamText" rows="6" placeholder="Вставьте текст сообщения здесь..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary w-100" id="checkButton">
+                    <i class="bi bi-search me-2"></i>Проверить на мошенничество
+                </button>
+            </form>
+            
+            <div id="scamResult" class="mt-4 d-none">
+                <div class="alert" id="resultAlert">
+                    <h5 id="resultTitle"></h5>
+                    <p id="resultExplanation" class="mb-0"></p>
+                </div>
+                <div id="redFlags" class="mt-3 d-none">
+                    <h6>🚩 Красные флаги:</h6>
+                    <ul id="flagsList"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-5 mb-4">
+        <div class="teen-card p-4">
+            <h3 class="h5 mb-3">Топ советов по безопасности</h3>
+            <div class="list-group list-group-flush">
+                <div class="list-group-item px-0">
+                    <h6 class="mb-1">Никому не говорите SMS-коды</h6>
+                    <p class="text-muted small mb-0">Даже если звонят из "банка" или "полиции".</p>
+                </div>
+                <div class="list-group-item px-0">
+                    <h6 class="mb-1">Проверяйте ссылки</h6>
+                    <p class="text-muted small mb-0">Всегда смотрите на домен перед вводом данных.</p>
+                </div>
+                <div class="list-group-item px-0">
+                    <h6 class="mb-1">Слишком хорошо, чтобы быть правдой</h6>
+                    <p class="text-muted small mb-0">Если обещают 100% прибыли за день - это обман.</p>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <a href="{% url 'teen:learning' %}" class="btn btn-outline-primary w-100">
+                    Пройти курс по безопасности
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('scamCheckForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const text = document.getElementById('scamText').value.trim();
+    if (!text) return;
+    
+    const btn = document.getElementById('checkButton');
+    const resultDiv = document.getElementById('scamResult');
+    const resultAlert = document.getElementById('resultAlert');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Анализируем...';
+    
+    try {
+        const response = await fetch('{% url "teen:api_scam_report" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ text: text })
+        });
+        
+        const data = await response.json();
+        
+        resultDiv.classList.remove('d-none');
+        if (data.is_suspicious) {
+            resultAlert.className = 'alert alert-danger';
+            document.getElementById('resultTitle').textContent = '⚠️ Обнаружена угроза!';
+            document.getElementById('resultExplanation').textContent = data.explanation;
+            
+            if (data.red_flags && data.red_flags.length > 0) {
+                const flagsList = document.getElementById('flagsList');
+                flagsList.innerHTML = '';
+                data.red_flags.forEach(flag => {
+                    const li = document.createElement('li');
+                    li.textContent = flag;
+                    flagsList.appendChild(li);
+                });
+                document.getElementById('redFlags').classList.remove('d-none');
+            }
+        } else {
+            resultAlert.className = 'alert alert-success';
+            document.getElementById('resultTitle').textContent = '✅ Подозрительных признаков не найдено';
+            document.getElementById('resultExplanation').textContent = 'Но всё равно будьте осторожны и не передавайте личные данные.';
+            document.getElementById('redFlags').classList.add('d-none');
+        }
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Произошла ошибка при проверке. Попробуйте еще раз.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-search me-2"></i>Проверить на мошенничество';
+    }
+});
+</script>
+{% endblock %}

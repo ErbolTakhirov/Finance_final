@@ -3,13 +3,13 @@ from django.contrib.auth.views import LogoutView
 from . import views, views_ai_accountant
 
 urlpatterns = [
-    # Главная страница и workspace
-    path('', views.workspace, name='workspace'),
-    path('dashboard/', views.dashboard, name='dashboard'),
-    path('demo/', views.ai_demo, name='ai_demo'),  # 🚀 Демо WOW-фич
+    # 🎯 Teen-focused FinBilim 2025 MVP (Primary Interface)
+    path('', include('core.urls_teen')),
     
-    # Teen-focused FinBilim 2025 MVP
-    path('teen/', include('core.urls_teen')),
+    # Legacy workspace and dashboard
+    path('workspace/', views.workspace, name='workspace'),
+    path('dashboard-legacy/', views.dashboard, name='dashboard_legacy'),
+    path('demo-ai/', views.ai_demo, name='ai_demo'),
 
     
     # API endpoints

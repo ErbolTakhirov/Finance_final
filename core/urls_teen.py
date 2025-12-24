@@ -31,4 +31,5 @@ urlpatterns = [
     # API endpoints for teen features
     path('api/chat/', views_teen.chat_with_ai, name='api_chat'),
     path('api/scam-report/', views_teen.report_scam, name='api_scam_report'),
+    path('api/refresh-stats/', views_teen.refresh_stats, name='refresh_stats'),
 ]

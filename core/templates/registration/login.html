@@ -1,42 +1,54 @@
 {% extends 'base.html' %}
-{% block title %}Вход - Финансовый трекинг{% endblock %}
+{% block title %}Вход - FinBilim 2025{% endblock %}
 
 {% block content %}
-<div style="max-width: 400px; margin: 100px auto; padding: 40px; background: var(--bg-primary); border-radius: var(--radius); box-shadow: var(--shadow-lg);">
-  <h2 style="margin-bottom: 30px; text-align: center;">Вход в систему</h2>
-  
-  {% if form.errors %}
-    <div style="padding: 12px; margin-bottom: 20px; background: #fee; border: 1px solid #fcc; border-radius: 8px; color: #c33;">
-      Неверное имя пользователя или пароль.
+<div class="row justify-content-center" style="margin-top: 50px;">
+    <div class="col-md-5">
+        <div class="teen-card p-5">
+            <div class="text-center mb-4">
+                <h2 class="fw-bold">Вход в систему</h2>
+                <p class="text-muted">Рады видеть вас снова!</p>
+            </div>
+            
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    Неверное имя пользователя или пароль.
+                </div>
+            {% endif %}
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Имя пользователя</label>
+                    {{ form.username }}
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Пароль</label>
+                    {{ form.password }}
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-100 py-3 mb-3">
+                    Войти
+                </button>
+            </form>
+            
+            <div class="text-center">
+                <p class="text-muted mb-0">Нет аккаунта? <a href="{% url 'register' %}" class="fw-bold text-decoration-none">Зарегистрироваться</a></p>
+            </div>
+        </div>
     </div>
-  {% endif %}
-  
-  <form method="post">
-    {% csrf_token %}
-    <div style="margin-bottom: 20px;">
-      <label style="display: block; margin-bottom: 8px; font-weight: 500;">{{ form.username.label }}</label>
-      {{ form.username }}
-      {% if form.username.errors %}
-        <div style="color: #c33; font-size: 14px; margin-top: 4px;">{{ form.username.errors }}</div>
-      {% endif %}
-    </div>
-    
-    <div style="margin-bottom: 20px;">
-      <label style="display: block; margin-bottom: 8px; font-weight: 500;">{{ form.password.label }}</label>
-      {{ form.password }}
-      {% if form.password.errors %}
-        <div style="color: #c33; font-size: 14px; margin-top: 4px;">{{ form.password.errors }}</div>
-      {% endif %}
-    </div>
-    
-    <button type="submit" style="width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 500; cursor: pointer;">
-      Войти
-    </button>
-  </form>
-  
-  <div style="margin-top: 20px; text-align: center; color: var(--text-secondary);">
-    Нет аккаунта? <a href="{% url 'register' %}" style="color: var(--accent); text-decoration: none;">Зарегистрироваться</a>
-  </div>
 </div>
-{% endblock %}
 
+<style>
+    .form-control {
+        border-radius: 12px;
+        padding: 12px 16px;
+        border: 1px solid #e2e8f0;
+    }
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+</style>
+{% endblock %}

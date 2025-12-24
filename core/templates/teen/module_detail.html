@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}{{ module.title }} - FinBilim 2025{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'teen:learning' %}">Обучение</a></li>
+                <li class="breadcrumb-item active">{{ module.title }}</li>
+            </ol>
+        </nav>
+
+        <div class="teen-card p-5 mb-4">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div>
+                    <span class="badge bg-primary mb-2">{{ module.category }}</span>
+                    <h1 class="h2 mb-2">{{ module.title }}</h1>
+                </div>
+                <span class="text-muted small"><i class="bi bi-clock me-1"></i>{{ module.estimated_time }} мин</span>
+            </div>
+
+            <div class="module-content">
+                {{ module.content|safe }}
+            </div>
+
+            {% if quiz_data %}
+            <hr class="my-5">
+            <div class="quiz-section" id="quiz-section">
+                <h3 class="h4 mb-4">Проверь свои знания!</h3>
+                <form method="post" action="{% url 'teen:take_quiz' quiz_data.quiz.id %}">
+                    {% csrf_token %}
+                    {% for question in quiz_data.questions %}
+                    <div class="mb-4 p-4 border rounded">
+                        <p class="fw-bold mb-3">{{ forloop.counter }}. {{ question.question_text }}</p>
+                        
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="question_{{ question.id }}" value="A" id="q{{ question.id }}a" required>
+                            <label class="form-check-label" for="q{{ question.id }}a">{{ question.option_a }}</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="question_{{ question.id }}" value="B" id="q{{ question.id }}b">
+                            <label class="form-check-label" for="q{{ question.id }}b">{{ question.option_b }}</label>
+                        </div>
+                        {% if question.option_c %}
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="question_{{ question.id }}" value="C" id="q{{ question.id }}c">
+                            <label class="form-check-label" for="q{{ question.id }}c">{{ question.option_c }}</label>
+                        </div>
+                        {% endif %}
+                        {% if question.option_d %}
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="question_{{ question.id }}" value="D" id="q{{ question.id }}d">
+                            <label class="form-check-label" for="q{{ question.id }}d">{{ question.option_d }}</label>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    
+                    <button type="submit" class="btn btn-success w-100 py-3">
+                        <i class="bi bi-check-circle me-2"></i>Завершить тест
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.module-content {
+    line-height: 1.8;
+    font-size: 1.1rem;
+}
+.module-content h2, .module-content h3 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+.module-content p {
+    margin-bottom: 1.5rem;
+}
+</style>
+{% endblock %}

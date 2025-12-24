@@ -19,10 +19,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'accounts.apps.AccountsConfig',
-    'finance.apps.FinanceConfig',
-    'goals.apps.GoalsConfig',
-    'ai.apps.AiConfig',
     'core',
 ]
 
@@ -209,7 +205,7 @@ LLM_PROMPT_TEMPLATE = os.getenv('LLM_PROMPT_TEMPLATE', (
 # НАСТРОЙКИ АВТОРИЗАЦИИ
 # ============================================================================
 LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = '/dashboard/'
+LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 # ============================================================================
