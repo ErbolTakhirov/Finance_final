@@ -1,0 +1,64 @@
+{% extends 'teen/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                <div class="card-header bg-primary bg-gradient text-white p-4">
+                    <h2 class="mb-0 h4"><i class="fas fa-magic me-2"></i> Умный Импорт Данных</h2>
+                    <p class="mb-0 small opacity-75">Просто вставь текст или список трат — AI разберется.</p>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="raw_data" class="form-label fw-bold">Вставь свои данные здесь</label>
+                            <textarea name="raw_data" id="raw_data" class="form-control rounded-3" rows="8"
+                                placeholder="Например:&#10;01.12 Магнит 450р&#10;02.12 Такси 320 сомов&#10;Подарок от бабушки 1000"></textarea>
+                            <div class="form-text mt-2">
+                                <i class="fas fa-info-circle me-1"></i> Можно копировать из банковских приложений, СМС
+                                или просто писать списком.
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm">
+                                <i class="fas fa-brain me-2"></i> Проанализировать через AI
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card-footer bg-light p-4">
+                    <h5 class="h6 mb-3">Как это работает?</h5>
+                    <div class="row g-3">
+                        <div class="col-md-4 text-center">
+                            <div class="avatar-sm bg-blue-soft text-primary rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center"
+                                style="width: 40px; height: 40px; background: rgba(13, 110, 253, 0.1);">
+                                <i class="fas fa-paste"></i>
+                            </div>
+                            <p class="small mb-0">Вставляешь текст</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="avatar-sm bg-purple-soft text-purple rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center"
+                                style="width: 40px; height: 40px; background: rgba(111, 66, 193, 0.1); color: #6f42c1;">
+                                <i class="fas fa-microchip"></i>
+                            </div>
+                            <p class="small mb-0">AI определяет категории</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="avatar-sm bg-green-soft text-success rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center"
+                                style="width: 40px; height: 40px; background: rgba(25, 135, 84, 0.1);">
+                                <i class="fas fa-check-double"></i>
+                            </div>
+                            <p class="small mb-0">Подтверждаешь и готово!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

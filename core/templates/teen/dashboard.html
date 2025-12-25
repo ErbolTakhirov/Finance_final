@@ -29,7 +29,8 @@
                             <i class="bi bi-play-circle me-2"></i>Тур по приложению
                         </button>
                         {% if not user.teen_profile.demo_mode %}
-                        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#onboardingModal">
+                        <button class="btn btn-outline-primary" data-bs-toggle="modal"
+                            data-bs-target="#onboardingModal">
                             <i class="bi bi-lightning me-2"></i>Быстрый старт
                         </button>
                         {% endif %}
@@ -54,7 +55,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Current Streak -->
     <div class="col-lg-3 col-md-6 mb-3">
         <div class="stat-card">
@@ -71,7 +72,7 @@
             {% endif %}
         </div>
     </div>
-    
+
     <!-- Total Achievements -->
     <div class="col-lg-3 col-md-6 mb-3">
         <div class="stat-card">
@@ -88,7 +89,7 @@
             {% endif %}
         </div>
     </div>
-    
+
     <!-- Total Points -->
     <div class="col-lg-3 col-md-6 mb-3">
         <div class="stat-card">
@@ -111,129 +112,146 @@
 <div class="row">
     <!-- Left Column -->
     <div class="col-lg-8">
+        <!-- AI Accountant Banner -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4 bg-gradient overflow-hidden"
+            style="background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); color: white;">
+            <div class="card-body p-4 position-relative">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h3 class="h4 mb-2">Умный AI-Бухгалтер активирован! 🚀</h3>
+                        <p class="mb-3 opacity-90">Просто вставь текст трат, а AI сам их распределит и даст советы.</p>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'core:import_data' %}" class="btn btn-light rounded-pill px-4 fw-bold">Умный
+                                импорт</a>
+                            <a href="{% url 'core:ai_insights' %}"
+                                class="btn btn-outline-light rounded-pill px-4">Аналитика</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="position-absolute end-0 top-0 opacity-25 p-3 d-none d-md-block">
+                    <i class="bi bi-robot" style="font-size: 8rem;"></i>
+                </div>
+            </div>
+        </div>
+
         <!-- Quick Actions -->
         <div class="teen-card p-4 mb-4">
             <h3 class="h5 mb-3">
                 <i class="bi bi-lightning me-2"></i>Быстрые действия
             </h3>
             <div class="row">
-                <div class="col-md-6 mb-3">
+                <div class="col-md-4 mb-3">
                     <a href="{% url 'core:expense_create' %}" class="btn btn-outline-primary w-100 py-3">
                         <i class="bi bi-receipt d-block mb-2" style="font-size: 1.5rem;"></i>
-                        Добавить расход
+                        Расход
                     </a>
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-md-4 mb-3">
                     <a href="{% url 'core:income_create' %}" class="btn btn-outline-primary w-100 py-3">
                         <i class="bi bi-plus-circle d-block mb-2" style="font-size: 1.5rem;"></i>
-                        Добавить доход
+                        Доход
                     </a>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <a href="{% url 'teen:goals' %}" class="btn btn-outline-primary w-100 py-3">
-                        <i class="bi bi-bullseye d-block mb-2" style="font-size: 1.5rem;"></i>
-                        Новая цель
-                    </a>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <a href="{% url 'teen:ai_coach' %}" class="btn btn-outline-primary w-100 py-3">
-                        <i class="bi bi-chat-dots d-block mb-2" style="font-size: 1.5rem;"></i>
-                        Спросить AI
+                <div class="col-md-4 mb-3">
+                    <a href="{% url 'core:import_data' %}" class="btn btn-primary w-100 py-3 shadow-sm">
+                        <i class="bi bi-magic d-block mb-2" style="font-size: 1.5rem;"></i>
+                        Умный Импорт
                     </a>
                 </div>
             </div>
         </div>
-        
+
         <!-- Active Goals -->
         <div class="teen-card p-4 mb-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h3 class="h5 mb-0">
                     <i class="bi bi-bullseye me-2"></i>Мои цели
                 </h3>
-                <a href="{% url 'teen:goals' %}" class="btn btn-sm btn-primary">
+                <a href="{% url 'core:goals' %}" class="btn btn-sm btn-primary">
                     Все цели
                 </a>
             </div>
-            
+
             {% if recent_goals %}
-                {% for goal in recent_goals %}
-                <div class="goal-card">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h6 class="mb-0">{{ goal.title }}</h6>
-                        <span class="goal-progress">{{ goal.progress_percentage|floatformat:0 }}%</span>
+            {% for goal in recent_goals %}
+            <div class="goal-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="mb-0">{{ goal.title }}</h6>
+                    <span class="goal-progress">{{ goal.progress_percentage|floatformat:0 }}%</span>
+                </div>
+                <p class="text-muted small mb-2">{{ goal.description|default:"Без описания" }}</p>
+                <div class="row align-items-center">
+                    <div class="col-sm-8">
+                        <div class="progress mb-2">
+                            <div class="progress-bar" style="width: {{ goal.progress_percentage }}%"></div>
+                        </div>
+                        <small class="text-muted">
+                            {{ goal.current_amount|floatformat:0 }} / {{ goal.target_amount|floatformat:0 }} сом
+                            {% if goal.days_remaining > 0 %}
+                            • Осталось {{ goal.days_remaining }} дней
+                            {% endif %}
+                        </small>
                     </div>
-                    <p class="text-muted small mb-2">{{ goal.description|default:"Без описания" }}</p>
-                    <div class="row align-items-center">
-                        <div class="col-sm-8">
-                            <div class="progress mb-2">
-                                <div class="progress-bar" style="width: {{ goal.progress_percentage }}%"></div>
-                            </div>
-                            <small class="text-muted">
-                                {{ goal.current_amount|floatformat:0 }} / {{ goal.target_amount|floatformat:0 }} сом
-                                {% if goal.days_remaining > 0 %}
-                                • Осталось {{ goal.days_remaining }} дней
-                                {% endif %}
-                            </small>
-                        </div>
-                        <div class="col-sm-4 text-sm-end">
-                            <form method="post" action="{% url 'teen:update_goal_progress' goal.id %}" class="d-inline">
-                                {% csrf_token %}
-                                <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#updateGoalModal{{ goal.id }}">
-                                    <i class="bi bi-plus-circle me-1"></i>Добавить
-                                </button>
-                            </form>
-                        </div>
+                    <div class="col-sm-4 text-sm-end">
+                        <form method="post" action="{% url 'core:update_goal_progress' goal.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
+                                data-bs-target="#updateGoalModal{{ goal.id }}">
+                                <i class="bi bi-plus-circle me-1"></i>Добавить
+                            </button>
+                        </form>
                     </div>
                 </div>
-                {% endfor %}
+            </div>
+            {% endfor %}
             {% else %}
-                <div class="text-center py-4">
-                    <i class="bi bi-bullseye" style="font-size: 3rem; color: #d1d5db;"></i>
-                    <h6 class="mt-3 text-muted">Пока нет активных целей</h6>
-                    <p class="text-muted">Создайте первую цель и начните копить!</p>
-                    <a href="{% url 'teen:goals' %}" class="btn btn-primary">
-                        <i class="bi bi-plus-circle me-2"></i>Создать цель
-                    </a>
-                </div>
+            <div class="text-center py-4">
+                <i class="bi bi-bullseye" style="font-size: 3rem; color: #d1d5db;"></i>
+                <h6 class="mt-3 text-muted">Пока нет активных целей</h6>
+                <p class="text-muted">Создайте первую цель и начните копить!</p>
+                <a href="{% url 'core:goals' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Создать цель
+                </a>
+            </div>
             {% endif %}
         </div>
-        
+
         <!-- AI Coach Preview -->
         <div class="teen-card p-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h3 class="h5 mb-0">
                     <i class="bi bi-robot me-2"></i>AI Финансовый Коуч
                 </h3>
-                <a href="{% url 'teen:ai_coach' %}" class="btn btn-sm btn-primary">
+                <a href="{% url 'core:ai_coach' %}" class="btn btn-sm btn-primary">
                     Открыть чат
                 </a>
             </div>
-            
+
             {% if recent_chats %}
-                <div class="chat-container" style="height: 200px;">
-                    {% for session in recent_chats %}
-                        {% for message in session.teen_messages|slice:":2" %}
-                        <div class="chat-message {{ message.role }}">
-                            <div class="chat-bubble {{ message.role }}">
-                                {{ message.content|truncatechars:100 }}
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% endfor %}
+            <div class="chat-container" style="height: 200px;">
+                {% for session in recent_chats %}
+                {% for message in session.teen_messages|slice:":2" %}
+                <div class="chat-message {{ message.role }}">
+                    <div class="chat-bubble {{ message.role }}">
+                        {{ message.content|truncatechars:100 }}
+                    </div>
                 </div>
+                {% endfor %}
+                {% endfor %}
+            </div>
             {% else %}
-                <div class="text-center py-4">
-                    <i class="bi bi-chat-dots" style="font-size: 3rem; color: #d1d5db;"></i>
-                    <h6 class="mt-3 text-muted">Начните диалог с AI</h6>
-                    <p class="text-muted">Задайте вопрос о деньгах, бюджете или целях</p>
-                    <a href="{% url 'teen:ai_coach' %}" class="btn btn-primary">
-                        <i class="bi bi-chat-dots me-2"></i>Начать чат
-                    </a>
-                </div>
+            <div class="text-center py-4">
+                <i class="bi bi-chat-dots" style="font-size: 3rem; color: #d1d5db;"></i>
+                <h6 class="mt-3 text-muted">Начните диалог с AI</h6>
+                <p class="text-muted">Задайте вопрос о деньгах, бюджете или целях</p>
+                <a href="{% url 'core:ai_coach' %}" class="btn btn-primary">
+                    <i class="bi bi-chat-dots me-2"></i>Начать чат
+                </a>
+            </div>
             {% endif %}
         </div>
     </div>
-    
+
     <!-- Right Column -->
     <div class="col-lg-4">
         <!-- Today's Spending -->
@@ -252,83 +270,84 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Recent Insights -->
         <div class="teen-card p-4 mb-4">
             <h3 class="h6 mb-3">
                 <i class="bi bi-lightbulb me-2"></i>AI Инсайты
             </h3>
-            
+
             {% if recent_insights %}
-                {% for insight in recent_insights %}
-                <div class="border-start border-primary border-3 ps-3 mb-3">
-                    <h6 class="mb-1">{{ insight.title }}</h6>
-                    <p class="text-muted small mb-2">{{ insight.content|truncatechars:80 }}</p>
-                    <small class="text-muted">{{ insight.created_at|date:"d.m H:i" }}</small>
-                </div>
-                {% endfor %}
+            {% for insight in recent_insights %}
+            <div class="border-start border-primary border-3 ps-3 mb-3">
+                <h6 class="mb-1">{{ insight.title }}</h6>
+                <p class="text-muted small mb-2">{{ insight.content|truncatechars:80 }}</p>
+                <small class="text-muted">{{ insight.created_at|date:"d.m H:i" }}</small>
+            </div>
+            {% endfor %}
             {% else %}
-                <div class="text-center py-3">
-                    <i class="bi bi-lightbulb" style="font-size: 2rem; color: #d1d5db;"></i>
-                    <p class="text-muted small mt-2">Пока нет новых инсайтов</p>
-                </div>
+            <div class="text-center py-3">
+                <i class="bi bi-lightbulb" style="font-size: 2rem; color: #d1d5db;"></i>
+                <p class="text-muted small mt-2">Пока нет новых инсайтов</p>
+            </div>
             {% endif %}
         </div>
-        
+
         <!-- Next Achievements -->
         <div class="teen-card p-4 mb-4">
             <h3 class="h6 mb-3">
                 <i class="bi bi-star me-2"></i>Следующие достижения
             </h3>
-            
+
             {% if gamification.next_achievements %}
-                {% for next_achievement in gamification.next_achievements %}
-                <div class="d-flex align-items-center mb-3">
-                    <div class="achievement-icon me-3">{{ next_achievement.icon }}</div>
-                    <div class="flex-grow-1">
-                        <h6 class="mb-1 small">{{ next_achievement.title }}</h6>
-                        <div class="progress" style="height: 6px;">
-                            <div class="progress-bar" style="width: {{ next_achievement.progress }}%"></div>
-                        </div>
-                        <small class="text-muted">{{ next_achievement.progress }}% выполнено</small>
+            {% for next_achievement in gamification.next_achievements %}
+            <div class="d-flex align-items-center mb-3">
+                <div class="achievement-icon me-3">{{ next_achievement.icon }}</div>
+                <div class="flex-grow-1">
+                    <h6 class="mb-1 small">{{ next_achievement.title }}</h6>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar" style="width: {{ next_achievement.progress }}%"></div>
                     </div>
+                    <small class="text-muted">{{ next_achievement.progress }}% выполнено</small>
                 </div>
-                {% endfor %}
+            </div>
+            {% endfor %}
             {% else %}
-                <div class="text-center py-3">
-                    <i class="bi bi-trophy" style="font-size: 2rem; color: #d1d5db;"></i>
-                    <p class="text-muted small mt-2">Продолжайте в том же духе!</p>
-                </div>
+            <div class="text-center py-3">
+                <i class="bi bi-trophy" style="font-size: 2rem; color: #d1d5db;"></i>
+                <p class="text-muted small mt-2">Продолжайте в том же духе!</p>
+            </div>
             {% endif %}
         </div>
-        
+
         <!-- Learning Modules -->
         <div class="teen-card p-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h3 class="h6 mb-0">
                     <i class="bi bi-book me-2"></i>Уроки
                 </h3>
-                <a href="{% url 'teen:learning' %}" class="btn btn-sm btn-primary">Все</a>
+                <a href="{% url 'core:learning' %}" class="btn btn-sm btn-primary">Все</a>
             </div>
-            
+
             {% if learning_modules %}
-                {% for module in learning_modules %}
-                <div class="d-flex align-items-center mb-2">
-                    <i class="bi bi-bookmark me-2 text-primary"></i>
-                    <div class="flex-grow-1">
-                        <h6 class="mb-1 small">{{ module.title }}</h6>
-                        <small class="text-muted">{{ module.estimated_time }} мин</small>
-                    </div>
-                    <span class="badge bg-{% if module.difficulty == 'beginner' %}success{% elif module.difficulty == 'intermediate' %}warning{% else %}danger{% endif %} small">
-                        {{ module.get_difficulty_display }}
-                    </span>
+            {% for module in learning_modules %}
+            <div class="d-flex align-items-center mb-2">
+                <i class="bi bi-bookmark me-2 text-primary"></i>
+                <div class="flex-grow-1">
+                    <h6 class="mb-1 small">{{ module.title }}</h6>
+                    <small class="text-muted">{{ module.estimated_time }} мин</small>
                 </div>
-                {% endfor %}
+                <span
+                    class="badge bg-{% if module.difficulty == 'beginner' %}success{% elif module.difficulty == 'intermediate' %}warning{% else %}danger{% endif %} small">
+                    {{ module.get_difficulty_display }}
+                </span>
+            </div>
+            {% endfor %}
             {% else %}
-                <div class="text-center py-3">
-                    <i class="bi bi-book" style="font-size: 2rem; color: #d1d5db;"></i>
-                    <p class="text-muted small mt-2">Уроки скоро появятся</p>
-                </div>
+            <div class="text-center py-3">
+                <i class="bi bi-book" style="font-size: 2rem; color: #d1d5db;"></i>
+                <p class="text-muted small mt-2">Уроки скоро появятся</p>
+            </div>
             {% endif %}
         </div>
     </div>
@@ -343,13 +362,13 @@
                 <h5 class="modal-title">Обновить прогресс: {{ goal.title }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="post" action="{% url 'teen:update_goal_progress' goal.id %}">
+            <form method="post" action="{% url 'core:update_goal_progress' goal.id %}">
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Текущая сумма (сом)</label>
-                        <input type="number" class="form-control" name="current_amount" 
-                               value="{{ goal.current_amount|floatformat:0 }}" step="0.01" min="0">
+                        <input type="number" class="form-control" name="current_amount"
+                            value="{{ goal.current_amount|floatformat:0 }}" step="0.01" min="0">
                         <div class="form-text">
                             Сейчас накоплено: {{ goal.current_amount|floatformat:0 }} сом
                         </div>
@@ -380,7 +399,8 @@
             <div class="modal-body">
                 <div id="tourCarousel" class="carousel slide" data-bs-ride="carousel">
                     <div class="carousel-indicators">
-                        <button type="button" data-bs-target="#tourCarousel" data-bs-slide-to="0" class="active"></button>
+                        <button type="button" data-bs-target="#tourCarousel" data-bs-slide-to="0"
+                            class="active"></button>
                         <button type="button" data-bs-target="#tourCarousel" data-bs-slide-to="1"></button>
                         <button type="button" data-bs-target="#tourCarousel" data-bs-slide-to="2"></button>
                         <button type="button" data-bs-target="#tourCarousel" data-bs-slide-to="3"></button>
@@ -390,28 +410,32 @@
                             <div class="text-center p-4">
                                 <i class="bi bi-robot" style="font-size: 4rem; color: var(--primary-color);"></i>
                                 <h4 class="mt-3">AI Финансовый Коуч</h4>
-                                <p>Задавайте вопросы о деньгах, бюджете и целях. AI поможет разобраться в сложных темах простым языком!</p>
+                                <p>Задавайте вопросы о деньгах, бюджете и целях. AI поможет разобраться в сложных темах
+                                    простым языком!</p>
                             </div>
                         </div>
                         <div class="carousel-item">
                             <div class="text-center p-4">
                                 <i class="bi bi-bullseye" style="font-size: 4rem; color: var(--primary-color);"></i>
                                 <h4 class="mt-3">Цели и Накопления</h4>
-                                <p>Ставьте цели, отслеживайте прогресс и получайте советы от AI, как накопить нужную сумму к нужной дате.</p>
+                                <p>Ставьте цели, отслеживайте прогресс и получайте советы от AI, как накопить нужную
+                                    сумму к нужной дате.</p>
                             </div>
                         </div>
                         <div class="carousel-item">
                             <div class="text-center p-4">
                                 <i class="bi bi-trophy" style="font-size: 4rem; color: var(--primary-color);"></i>
                                 <h4 class="mt-3">Достижения и Игрофикация</h4>
-                                <p>Получайте достижения за обучение, достижение целей и правильное управление деньгами!</p>
+                                <p>Получайте достижения за обучение, достижение целей и правильное управление деньгами!
+                                </p>
                             </div>
                         </div>
                         <div class="carousel-item">
                             <div class="text-center p-4">
                                 <i class="bi bi-shield-check" style="font-size: 4rem; color: var(--primary-color);"></i>
                                 <h4 class="mt-3">Защита от Мошенничества</h4>
-                                <p>Узнавайте, как распознать подозрительные предложения и защитить свои деньги от мошенников.</p>
+                                <p>Узнавайте, как распознать подозрительные предложения и защитить свои деньги от
+                                    мошенников.</p>
                             </div>
                         </div>
                     </div>
@@ -419,7 +443,7 @@
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-                <a href="{% url 'teen:ai_coach' %}" class="btn btn-primary">
+                <a href="{% url 'core:ai_coach' %}" class="btn btn-primary">
                     <i class="bi bi-chat-dots me-2"></i>Попробовать AI
                 </a>
             </div>
@@ -464,7 +488,7 @@
                             <i class="bi bi-bullseye" style="font-size: 3rem; color: var(--primary-color);"></i>
                             <h5 class="mt-3">3. Поставьте цель</h5>
                             <p class="text-muted">На что хотите накопить?</p>
-                            <a href="{% url 'teen:goals' %}" class="btn btn-primary">
+                            <a href="{% url 'core:goals' %}" class="btn btn-primary">
                                 <i class="bi bi-plus me-2"></i>Создать цель
                             </a>
                         </div>
@@ -474,7 +498,7 @@
                             <i class="bi bi-chat-dots" style="font-size: 3rem; color: var(--secondary-color);"></i>
                             <h5 class="mt-3">4. Спросите AI</h5>
                             <p class="text-muted">Получите персональные советы</p>
-                            <a href="{% url 'teen:ai_coach' %}" class="btn btn-secondary">
+                            <a href="{% url 'core:ai_coach' %}" class="btn btn-secondary">
                                 <i class="bi bi-chat me-2"></i>Начать чат
                             </a>
                         </div>
@@ -486,40 +510,40 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize tooltips
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-    
-    // Add confetti effect for achievements
-    {% if achievements_unlocked and achievements_unlocked > 0 %}
-    setTimeout(function() {
-        confetti({
-            particleCount: 150,
-            spread: 70,
-            origin: { y: 0.6 },
-            colors: ['#6366f1', '#8b5cf6', '#10b981', '#f59e0b']
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
         });
-    }, 1500);
-    {% endif %}
-    
-    // Auto-refresh stats every 30 seconds
-    setInterval(function() {
-        fetch('/teen/api/refresh-stats/')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Update Financial IQ
-                    const iqElement = document.querySelector('.stat-card .stat-number');
-                    if (iqElement && data.financial_iq !== undefined) {
-                        iqElement.textContent = data.financial_iq;
+
+        // Add confetti effect for achievements
+        {% if achievements_unlocked and achievements_unlocked > 0 %}
+        setTimeout(function () {
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#6366f1', '#8b5cf6', '#10b981', '#f59e0b']
+            });
+        }, 1500);
+        {% endif %}
+
+        // Auto-refresh stats every 30 seconds
+        setInterval(function () {
+            fetch('/teen/api/refresh-stats/')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update Financial IQ
+                        const iqElement = document.querySelector('.stat-card .stat-number');
+                        if (iqElement && data.financial_iq !== undefined) {
+                            iqElement.textContent = data.financial_iq;
+                        }
                     }
-                }
-            })
-            .catch(error => console.log('Stats refresh failed:', error));
-    }, 30000);
-});
+                })
+                .catch(error => console.log('Stats refresh failed:', error));
+        }, 30000);
+    });
 </script>
 {% endblock %}

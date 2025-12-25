@@ -37,7 +37,15 @@ def teen_dashboard(request):
     """
     try:
         user = request.user
+        
+        # Ensure profile exists
+        if not hasattr(user, 'teen_profile'):
+            UserProfile.objects.get_or_create(user=user)
         profile = user.teen_profile
+        
+        # Ensure progress exists (crucial for gamification engine)
+        if not hasattr(user, 'progress'):
+            UserProgress.objects.get_or_create(user=user)
         
         # Get gamification data
         gamification_data = gamification_engine.get_user_dashboard_data(user)
@@ -89,8 +97,8 @@ def teen_dashboard(request):
         
     except Exception as e:
         logger.error(f"Error in teen dashboard: {e}")
-        messages.error(request, "Произошла ошибка при загрузке главной страницы")
-        return redirect('core:dashboard')
+        messages.error(request, f"Ошибка загрузки подросткового раздела: {e}")
+        return redirect('core:dashboard')  # Редирект на основной дашборд с графиками
 
 
 @login_required
@@ -150,7 +158,7 @@ def create_goal(request):
             
             if not title or target_amount <= 0 or not target_date_str:
                 messages.error(request, "Заполните все обязательные поля")
-                return redirect('teen:goals')
+                return redirect('core:goals')
             
             # Parse target date
             target_date = datetime.strptime(target_date_str, '%Y-%m-%d').date()
@@ -188,17 +196,17 @@ def create_goal(request):
                 messages.success(request, "🎉 Поздравляем! Вы получили новое достижение!")
             
             messages.success(request, f"Цель '{title}' создана успешно!")
-            return redirect('teen:goals')
+            return redirect('core:goals')
             
         except ValueError:
             messages.error(request, "Некорректная сумма или дата")
-            return redirect('teen:goals')
+            return redirect('core:goals')
         except Exception as e:
             logger.error(f"Error creating goal: {e}")
             messages.error(request, "Произошла ошибка при создании цели")
-            return redirect('teen:goals')
+            return redirect('core:goals')
     
-    return redirect('teen:goals')
+    return redirect('core:goals')
 
 
 @login_required
@@ -215,7 +223,7 @@ def update_goal_progress(request, goal_id):
             
             if new_amount < 0:
                 messages.error(request, "Сумма не может быть отрицательной")
-                return redirect('teen:goals')
+                return redirect('core:goals')
             
             # Update goal
             goal.current_amount = new_amount
@@ -248,17 +256,17 @@ def update_goal_progress(request, goal_id):
                 if unlocked['unlocked_count'] > 0:
                     messages.success(request, "🏆 Получено новое достижение!")
             
-            return redirect('teen:goals')
+            return redirect('core:goals')
             
         except ValueError:
             messages.error(request, "Некорректная сумма")
-            return redirect('teen:goals')
+            return redirect('core:goals')
         except Exception as e:
             logger.error(f"Error updating goal progress: {e}")
             messages.error(request, "Произошла ошибка при обновлении прогресса")
-            return redirect('teen:goals')
+            return redirect('core:goals')
     
-    return redirect('teen:goals')
+    return redirect('core:goals')
 
 
 @login_required
@@ -300,7 +308,7 @@ def ai_coach(request):
     except Exception as e:
         logger.error(f"Error in AI coach view: {e}")
         messages.error(request, "Произошла ошибка при загрузке AI коуча")
-        return redirect('teen:dashboard')
+        return redirect('core:dashboard')
 
 
 @csrf_exempt
@@ -421,7 +429,7 @@ def learning_modules(request):
     except Exception as e:
         logger.error(f"Error in learning modules: {e}")
         messages.error(request, "Произошла ошибка при загрузке обучающих материалов")
-        return redirect('teen:dashboard')
+        return redirect('core:dashboard')
 
 
 @login_required
@@ -463,7 +471,7 @@ def module_detail(request, module_id):
     except Exception as e:
         logger.error(f"Error in module detail: {e}")
         messages.error(request, "Произошла ошибка при загрузке урока")
-        return redirect('teen:learning')
+        return redirect('core:learning')
 
 
 @login_required
@@ -552,7 +560,7 @@ def take_quiz(request, quiz_id):
     except Exception as e:
         logger.error(f"Error taking quiz: {e}")
         messages.error(request, "Произошла ошибка при загрузке квиза")
-        return redirect('teen:learning')
+        return redirect('core:learning')
 
 
 @login_required
@@ -581,7 +589,7 @@ def scam_awareness(request):
     except Exception as e:
         logger.error(f"Error in scam awareness: {e}")
         messages.error(request, "Произошла ошибка при загрузке модуля защиты")
-        return redirect('teen:dashboard')
+        return redirect('core:dashboard')
 
 
 @csrf_exempt
@@ -772,7 +780,7 @@ def achievements_view(request):
     except Exception as e:
         logger.error(f"Error in achievements view: {e}")
         messages.error(request, "Произошла ошибка при загрузке достижений")
-        return redirect('teen:dashboard')
+        return redirect('core:dashboard')
 
 
 def get_demo_data():

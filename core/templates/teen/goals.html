@@ -56,9 +56,9 @@
         <div class="stat-card">
             <div class="stat-number">
                 {% if active_goals %}
-                    {{ active_goals.0.progress_percentage|floatformat:0|default:0 }}
+                {{ active_goals.0.progress_percentage|floatformat:0|default:0 }}
                 {% else %}
-                    0
+                0
                 {% endif %}%
             </div>
             <div class="stat-label">
@@ -75,94 +75,99 @@
             <h3 class="h5 mb-3">
                 <i class="bi bi-play-circle me-2"></i>Активные цели
             </h3>
-            
+
             {% if active_goals %}
-                {% for goal in active_goals %}
-                <div class="goal-card">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <div class="d-flex align-items-center mb-2">
-                                <h6 class="mb-0 me-3">{{ goal.title }}</h6>
-                                <span class="badge bg-{{ goal.category|default:'secondary' }}">{{ goal.get_category_display }}</span>
-                            </div>
-                            <p class="text-muted small mb-3">{{ goal.description|default:"Описание не указано" }}</p>
-                            
-                            <div class="row align-items-center mb-2">
-                                <div class="col-sm-8">
-                                    <div class="progress mb-2">
-                                        <div class="progress-bar" style="width: {{ goal.progress_percentage }}%"></div>
-                                    </div>
-                                    <small class="text-muted">
-                                        {{ goal.current_amount|floatformat:0 }} / {{ goal.target_amount|floatformat:0 }} сом
-                                    </small>
-                                </div>
-                                <div class="col-sm-4 text-sm-end">
-                                    <div class="goal-progress">{{ goal.progress_percentage|floatformat:0 }}%</div>
-                                </div>
-                            </div>
-                            
-                            {% if goal.ai_recommendation %}
-                            <div class="alert alert-info py-2 mb-2">
-                                <small><i class="bi bi-robot me-1"></i>{{ goal.ai_recommendation|truncatechars:120 }}</small>
-                            </div>
-                            {% endif %}
-                            
-                            {% if goal.weekly_saving_suggestion > 0 %}
-                            <small class="text-success">
-                                <i class="bi bi-lightning me-1"></i>Рекомендуется откладывать {{ goal.weekly_saving_suggestion|floatformat:0 }} сом в неделю
-                            </small>
-                            {% endif %}
+            {% for goal in active_goals %}
+            <div class="goal-card">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center mb-2">
+                            <h6 class="mb-0 me-3">{{ goal.title }}</h6>
+                            <span class="badge bg-{{ goal.category|default:'secondary' }}">{{ goal.get_category_display
+                                }}</span>
                         </div>
-                        <div class="col-md-4">
-                            <div class="d-grid gap-2">
-                                <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#updateGoalModal{{ goal.id }}">
-                                    <i class="bi bi-plus-circle me-1"></i>Добавить сумму
-                                </button>
-                                <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#goalDetailsModal{{ goal.id }}">
-                                    <i class="bi bi-info-circle me-1"></i>Подробнее
-                                </button>
-                                <form method="post" action="{% url 'teen:update_goal_status' goal.id %}" class="d-inline">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="status" value="paused">
-                                    <button type="submit" class="btn btn-outline-warning btn-sm w-100">
-                                        <i class="bi bi-pause me-1"></i>Приостановить
-                                    </button>
-                                </form>
+                        <p class="text-muted small mb-3">{{ goal.description|default:"Описание не указано" }}</p>
+
+                        <div class="row align-items-center mb-2">
+                            <div class="col-sm-8">
+                                <div class="progress mb-2">
+                                    <div class="progress-bar" style="width: {{ goal.progress_percentage }}%"></div>
+                                </div>
+                                <small class="text-muted">
+                                    {{ goal.current_amount|floatformat:0 }} / {{ goal.target_amount|floatformat:0 }} сом
+                                </small>
                             </div>
+                            <div class="col-sm-4 text-sm-end">
+                                <div class="goal-progress">{{ goal.progress_percentage|floatformat:0 }}%</div>
+                            </div>
+                        </div>
+
+                        {% if goal.ai_recommendation %}
+                        <div class="alert alert-info py-2 mb-2">
+                            <small><i class="bi bi-robot me-1"></i>{{ goal.ai_recommendation|truncatechars:120
+                                }}</small>
+                        </div>
+                        {% endif %}
+
+                        {% if goal.weekly_saving_suggestion > 0 %}
+                        <small class="text-success">
+                            <i class="bi bi-lightning me-1"></i>Рекомендуется откладывать {{
+                            goal.weekly_saving_suggestion|floatformat:0 }} сом в неделю
+                        </small>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-success btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#updateGoalModal{{ goal.id }}">
+                                <i class="bi bi-plus-circle me-1"></i>Добавить сумму
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#goalDetailsModal{{ goal.id }}">
+                                <i class="bi bi-info-circle me-1"></i>Подробнее
+                            </button>
+                            <form method="post" action="{% url 'core:update_goal_status' goal.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="paused">
+                                <button type="submit" class="btn btn-outline-warning btn-sm w-100">
+                                    <i class="bi bi-pause me-1"></i>Приостановить
+                                </button>
+                            </form>
                         </div>
                     </div>
-                    
-                    {% if goal.days_remaining > 0 %}
-                    <div class="row mt-3">
-                        <div class="col-12">
-                            <small class="text-muted">
-                                <i class="bi bi-calendar me-1"></i>До достижения: {{ goal.days_remaining }} дней
-                                ({{ goal.target_date|date:"d.m.Y" }})
-                            </small>
-                        </div>
-                    </div>
-                    {% endif %}
                 </div>
-                {% endfor %}
+
+                {% if goal.days_remaining > 0 %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <small class="text-muted">
+                            <i class="bi bi-calendar me-1"></i>До достижения: {{ goal.days_remaining }} дней
+                            ({{ goal.target_date|date:"d.m.Y" }})
+                        </small>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
             {% else %}
-                <div class="text-center py-5">
-                    <i class="bi bi-bullseye" style="font-size: 4rem; color: #d1d5db;"></i>
-                    <h4 class="mt-3 text-muted">Пока нет активных целей</h4>
-                    <p class="text-muted">Создайте первую цель и начните свой путь к мечте!</p>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createGoalModal">
-                        <i class="bi bi-plus-circle me-2"></i>Создать первую цель
-                    </button>
-                </div>
+            <div class="text-center py-5">
+                <i class="bi bi-bullseye" style="font-size: 4rem; color: #d1d5db;"></i>
+                <h4 class="mt-3 text-muted">Пока нет активных целей</h4>
+                <p class="text-muted">Создайте первую цель и начните свой путь к мечте!</p>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createGoalModal">
+                    <i class="bi bi-plus-circle me-2"></i>Создать первую цель
+                </button>
+            </div>
             {% endif %}
         </div>
-        
+
         <!-- Completed Goals -->
         {% if completed_goals %}
         <div class="teen-card p-4">
             <h3 class="h5 mb-3">
                 <i class="bi bi-check-circle me-2 text-success"></i>Достигнутые цели
             </h3>
-            
+
             <div class="row">
                 {% for goal in completed_goals %}
                 <div class="col-md-6 mb-3">
@@ -180,7 +185,7 @@
         </div>
         {% endif %}
     </div>
-    
+
     <!-- Sidebar -->
     <div class="col-lg-4">
         <!-- Goal Achievements -->
@@ -188,56 +193,57 @@
             <h4 class="h6 mb-3">
                 <i class="bi bi-trophy me-2"></i>Достижения по целям
             </h4>
-            
+
             {% if goal_achievements %}
-                {% for user_achievement in goal_achievements %}
-                <div class="d-flex align-items-center mb-3">
-                    <div class="achievement-icon me-3">{{ user_achievement.achievement.icon }}</div>
-                    <div>
-                        <h6 class="mb-1 small">{{ user_achievement.achievement.title }}</h6>
-                        <small class="text-muted">{{ user_achievement.earned_at|date:"d.m.Y" }}</small>
-                    </div>
+            {% for user_achievement in goal_achievements %}
+            <div class="d-flex align-items-center mb-3">
+                <div class="achievement-icon me-3">{{ user_achievement.achievement.icon }}</div>
+                <div>
+                    <h6 class="mb-1 small">{{ user_achievement.achievement.title }}</h6>
+                    <small class="text-muted">{{ user_achievement.earned_at|date:"d.m.Y" }}</small>
                 </div>
-                {% endfor %}
+            </div>
+            {% endfor %}
             {% else %}
-                <div class="text-center py-3">
-                    <i class="bi bi-trophy" style="font-size: 2rem; color: #d1d5db;"></i>
-                    <p class="text-muted small mt-2">Достижения появятся здесь</p>
-                </div>
+            <div class="text-center py-3">
+                <i class="bi bi-trophy" style="font-size: 2rem; color: #d1d5db;"></i>
+                <p class="text-muted small mt-2">Достижения появятся здесь</p>
+            </div>
             {% endif %}
         </div>
-        
+
         <!-- Goal Categories -->
         <div class="teen-card p-4 mb-4">
             <h4 class="h6 mb-3">
                 <i class="bi bi-grid me-2"></i>Категории целей
             </h4>
-            
+
             {% if active_goals %}
-                {% for category, count in active_goals|groupby:'category' %}
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="small">{{ category|title }}</span>
-                    <span class="badge bg-primary">{{ count|length }}</span>
-                </div>
-                {% endfor %}
+            {% for category, count in active_goals|groupby:'category' %}
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="small">{{ category|title }}</span>
+                <span class="badge bg-primary">{{ count|length }}</span>
+            </div>
+            {% endfor %}
             {% else %}
-                <div class="text-center py-3">
-                    <p class="text-muted small">Создавайте цели в разных категориях!</p>
-                </div>
+            <div class="text-center py-3">
+                <p class="text-muted small">Создавайте цели в разных категориях!</p>
+            </div>
             {% endif %}
         </div>
-        
+
         <!-- AI Goal Tips -->
         <div class="teen-card p-4">
             <h4 class="h6 mb-3">
                 <i class="bi bi-lightbulb me-2"></i>Советы от AI
             </h4>
-            
+
             <div class="alert alert-info">
                 <i class="bi bi-robot me-2"></i>
-                <strong>Совет:</strong> Лучше иметь несколько маленьких целей, чем одну большую. Это поможет быстрее увидеть прогресс!
+                <strong>Совет:</strong> Лучше иметь несколько маленьких целей, чем одну большую. Это поможет быстрее
+                увидеть прогресс!
             </div>
-            
+
             <div class="alert alert-success">
                 <i class="bi bi-lightning me-2"></i>
                 <strong>Лайфхак:</strong> Откладывайте сдачу от покупок - это простой способ начать копить!
@@ -256,15 +262,15 @@
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="post" action="{% url 'teen:create_goal' %}">
+            <form method="post" action="{% url 'core:create_goal' %}">
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-8">
                             <div class="mb-3">
                                 <label class="form-label">Название цели *</label>
-                                <input type="text" class="form-control" name="title" required 
-                                       placeholder="Например: iPhone 15, ноутбук, курсы программирования">
+                                <input type="text" class="form-control" name="title" required
+                                    placeholder="Например: iPhone 15, ноутбук, курсы программирования">
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -281,19 +287,19 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label class="form-label">Описание</label>
-                        <textarea class="form-control" name="description" rows="3" 
-                                  placeholder="Дополнительные детали о цели (необязательно)"></textarea>
+                        <textarea class="form-control" name="description" rows="3"
+                            placeholder="Дополнительные детали о цели (необязательно)"></textarea>
                     </div>
-                    
+
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Целевая сумма (сом) *</label>
-                                <input type="number" class="form-control" name="target_amount" required 
-                                       step="0.01" min="0" placeholder="50000">
+                                <input type="number" class="form-control" name="target_amount" required step="0.01"
+                                    min="0" placeholder="50000">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -303,10 +309,11 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="alert alert-info">
                         <i class="bi bi-info-circle me-2"></i>
-                        <strong>AI поможет:</strong> После создания цели AI проанализирует вашу ситуацию и даст персональные советы по накоплению.
+                        <strong>AI поможет:</strong> После создания цели AI проанализирует вашу ситуацию и даст
+                        персональные советы по накоплению.
                     </div>
                 </div>
                 <div class="modal-footer border-0">
@@ -329,13 +336,13 @@
                 <h5 class="modal-title">Добавить сумму к: {{ goal.title }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="post" action="{% url 'teen:update_goal_progress' goal.id %}">
+            <form method="post" action="{% url 'core:update_goal_progress' goal.id %}">
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Текущая накопленная сумма (сом)</label>
-                        <input type="number" class="form-control" name="current_amount" 
-                               value="{{ goal.current_amount|floatformat:0 }}" step="0.01" min="0">
+                        <input type="number" class="form-control" name="current_amount"
+                            value="{{ goal.current_amount|floatformat:0 }}" step="0.01" min="0">
                         <div class="form-text">
                             Сейчас накоплено: {{ goal.current_amount|floatformat:0 }} сом
                             {% if goal.weekly_saving_suggestion > 0 %}
@@ -343,11 +350,11 @@
                             {% endif %}
                         </div>
                     </div>
-                    
+
                     <div class="progress mb-3">
                         <div class="progress-bar" style="width: {{ goal.progress_percentage }}%"></div>
                     </div>
-                    
+
                     {% if goal.progress_percentage >= 100 %}
                     <div class="alert alert-success">
                         <i class="bi bi-check-circle me-2"></i>
@@ -410,13 +417,15 @@
                     <div class="col-md-6">
                         <h6 class="mb-3">Прогресс</h6>
                         <div class="text-center mb-3">
-                            <div class="stat-number" style="font-size: 3rem;">{{ goal.progress_percentage|floatformat:0 }}%</div>
+                            <div class="stat-number" style="font-size: 3rem;">{{ goal.progress_percentage|floatformat:0
+                                }}%</div>
                             <div class="progress mb-3">
                                 <div class="progress-bar" style="width: {{ goal.progress_percentage }}%"></div>
                             </div>
-                            <p class="text-muted">{{ goal.current_amount|floatformat:0 }} из {{ goal.target_amount|floatformat:0 }} сом</p>
+                            <p class="text-muted">{{ goal.current_amount|floatformat:0 }} из {{
+                                goal.target_amount|floatformat:0 }} сом</p>
                         </div>
-                        
+
                         {% if goal.weekly_target > 0 %}
                         <div class="alert alert-info">
                             <i class="bi bi-calculator me-2"></i>
@@ -426,7 +435,7 @@
                         {% endif %}
                     </div>
                 </div>
-                
+
                 {% if goal.ai_recommendation %}
                 <div class="mt-4">
                     <h6 class="mb-3">Совет от AI</h6>
@@ -438,7 +447,8 @@
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#updateGoalModal{{ goal.id }}" data-bs-dismiss="modal">
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#updateGoalModal{{ goal.id }}"
+                    data-bs-dismiss="modal">
                     <i class="bi bi-plus-circle me-2"></i>Добавить сумму
                 </button>
             </div>
@@ -448,25 +458,25 @@
 {% endfor %}
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Set default date to 3 months from now
-    const targetDateInput = document.querySelector('input[name="target_date"]');
-    if (targetDateInput) {
-        const futureDate = new Date();
-        futureDate.setMonth(futureDate.getMonth() + 3);
-        targetDateInput.value = futureDate.toISOString().split('T')[0];
-    }
-    
-    // Real-time progress calculation
-    const progressBars = document.querySelectorAll('.progress-bar');
-    progressBars.forEach(bar => {
-        const width = bar.style.width;
-        if (parseInt(width) >= 100) {
-            bar.classList.add('bg-success');
-        } else if (parseInt(width) >= 50) {
-            bar.classList.add('bg-warning');
+    document.addEventListener('DOMContentLoaded', function () {
+        // Set default date to 3 months from now
+        const targetDateInput = document.querySelector('input[name="target_date"]');
+        if (targetDateInput) {
+            const futureDate = new Date();
+            futureDate.setMonth(futureDate.getMonth() + 3);
+            targetDateInput.value = futureDate.toISOString().split('T')[0];
         }
+
+        // Real-time progress calculation
+        const progressBars = document.querySelectorAll('.progress-bar');
+        progressBars.forEach(bar => {
+            const width = bar.style.width;
+            if (parseInt(width) >= 100) {
+                bar.classList.add('bg-success');
+            } else if (parseInt(width) >= 50) {
+                bar.classList.add('bg-warning');
+            }
+        });
     });
-});
 </script>
 {% endblock %}

@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views_teen
+from . import views_teen, views_automation
 
 # Namespace for teen routes
 app_name = 'teen'
@@ -10,6 +10,11 @@ urlpatterns = [
     path('goals/', views_teen.goals_view, name='goals'),
     path('goals/create/', views_teen.create_goal, name='create_goal'),
     path('goals/update/<int:goal_id>/', views_teen.update_goal_progress, name='update_goal_progress'),
+    
+    # AI Automation Features
+    path('import/', views_automation.import_data_view, name='import_data'),
+    path('review/', views_automation.review_transactions_view, name='review_data'),
+    path('insights/', views_automation.ai_insights_view, name='ai_insights'),
     
     # AI Coach Chat
     path('ai-coach/', views_teen.ai_coach, name='ai_coach'),

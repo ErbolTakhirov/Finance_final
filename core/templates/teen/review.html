@@ -1,0 +1,80 @@
+{% extends 'teen/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 mb-1">Проверь работу AI</h2>
+            <p class="text-muted">Мы распознали следующие транзакции. Все верно?</p>
+        </div>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="confirm_all">
+            <button type="submit" class="btn btn-success btn-lg rounded-pill shadow-sm">
+                <i class="fas fa-check-circle me-2"></i> Подтвердить все
+            </button>
+        </form>
+    </div>
+
+    <div class="row g-4">
+        {% for tx in transactions %}
+        <div class="col-md-6 col-lg-4">
+            <div
+                class="card border-0 shadow-sm rounded-4 h-100 {% if tx.needs_review %}border-start border-warning border-4{% endif %}">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between mb-3">
+                        <span
+                            class="badge rounded-pill {% if tx.type == 'income' %}bg-success{% else %}bg-primary{% endif %} px-3 py-2">
+                            {{ tx.category }}
+                        </span>
+                        <span class="text-muted small">{{ tx.date }}</span>
+                    </div>
+
+                    <h4 class="h5 mb-2">{{ tx.merchant }}</h4>
+                    <p class="text-muted small mb-3">{{ tx.description }}</p>
+
+                    <div class="d-flex justify-content-between align-items-end mt-auto">
+                        <div class="tx-amount">
+                            <span
+                                class="fs-4 fw-bold {% if tx.type == 'income' %}text-success{% else %}text-dark{% endif %}">
+                                {% if tx.type == 'income' %}+{% else %}-{% endif %}{{ tx.amount }}
+                            </span>
+                            <span class="text-muted ms-1">сомов</span>
+                        </div>
+
+                        {% if tx.confidence < 0.8 %} <div class="text-warning small"
+                            title="AI не уверен в этой категории">
+                            <i class="fas fa-exclamation-triangle"></i> Требует внимания
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-top-0 pb-4 ps-4 pe-4">
+                {% if tx.type == 'income' %}
+                <label class="small text-muted mb-1">Направить на цель?</label>
+                <select name="goal_{{ forloop.index0 }}" class="form-select form-select-sm rounded-pill">
+                    <option value="">Не привязывать к цели</option>
+                    {% for goal in goals %}
+                    <option value="{{ goal.id }}">{{ goal.title }}</option>
+                    {% endfor %}
+                </select>
+                {% else %}
+                <div class="text-end">
+                    <span class="badge bg-light text-dark rounded-pill px-3 border">Расход</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <div class="display-1 text-muted opacity-25 mb-4"><i class="fas fa-ghost"></i></div>
+        <h3>Ничего не найдено</h3>
+        <p>Вернись назад и попробуй вставить другой текст.</p>
+        <a href="{% url 'core:import_data' %}" class="btn btn-primary rounded-pill mt-3">Назад к импорту</a>
+    </div>
+    {% endfor %}
+</div>
+</div>
+{% endblock %}

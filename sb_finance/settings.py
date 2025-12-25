@@ -186,6 +186,18 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
 
+# Unique cookie names to avoid clashes with other projects on 127.0.0.1
+CSRF_COOKIE_NAME = 'sb_finance_csrftoken'
+SESSION_COOKIE_NAME = 'sb_finance_sessionid'
+
+# Trusted origins for CSRF (useful when running on non-standard ports)
+CSRF_TRUSTED_ORIGINS = [
+    'http://127.0.0.1:8000',
+    'http://127.0.0.1:8001',
+    'http://localhost:8000',
+    'http://localhost:8001',
+]
+
 # ============================================================================
 # TEEN FINANCE AI - FinBilim 2025 Hackathon Settings
 # ============================================================================

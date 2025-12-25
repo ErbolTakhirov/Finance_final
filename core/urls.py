@@ -3,13 +3,35 @@ from django.contrib.auth.views import LogoutView
 from . import views
 
 urlpatterns = [
-    # Главная страница и workspace
+    # Core Features
     path('', views.workspace, name='workspace'),
-    path('dashboard/', views.dashboard, name='dashboard'),
-    path('demo/', views.ai_demo, name='ai_demo'),  # 🚀 Демо WOW-фич
+    path('dashboard/', views.dashboard, name='dashboard'),  # Графики теперь снова здесь
+    path('teen/', views.teen_dashboard, name='teen_dashboard'),  # Подростковый раздел отдельно
+    path('legacy-dashboard/', views.teen_dashboard, name='legacy_dashboard'),  # Сохраняем имя для совместимости
+    path('demo/', views.ai_demo, name='ai_demo'),
     
-    # Teen-focused FinBilim 2025 MVP
-    path('teen/', include('core.urls_teen')),
+    # Financial Goals
+    path('goals/', views.goals_view, name='goals'),
+    path('goals/create/', views.create_goal, name='create_goal'),
+    path('goals/update/<int:goal_id>/', views.update_goal_progress, name='update_goal_progress'),
+    
+    # AI Automation & Insights
+    path('import/', views.import_data_view, name='import_data'),
+    path('review/', views.review_transactions_view, name='review_data'),
+    path('insights/', views.ai_insights_view, name='ai_insights'),
+    
+    # AI Financial Coach
+    path('ai-coach/', views.ai_coach, name='ai_coach'),
+    path('ai-coach/chat/', views.chat_with_ai, name='api_chat_teen'),
+    
+    # Education & Gamification
+    path('learning/', views.learning_modules, name='learning'),
+    path('learning/module/<int:module_id>/', views.module_detail, name='module_detail'),
+    path('learning/quiz/<int:quiz_id>/', views.take_quiz, name='take_quiz'),
+    path('achievements/', views.achievements_view, name='achievements'),
+    path('scam-awareness/', views.scam_awareness, name='scam_awareness'),
+    path('api/scam-report/', views.report_scam, name='api_scam_report'),
+    path('toggle-demo/', views.toggle_demo_mode, name='toggle_demo_mode'),
 
     
     # API endpoints

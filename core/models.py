@@ -65,12 +65,19 @@ class UserGoal(models.Model):
         ('cancelled', 'Отменена')
     ]
     
+    PRIORITY_CHOICES = [
+        ('low', 'Низкий'),
+        ('medium', 'Средний'),
+        ('high', 'Высокий')
+    ]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='goals')
     title = models.CharField(max_length=200, help_text='Цель (например: "Новый iPhone 15")')
     description = models.TextField(blank=True, help_text='Дополнительное описание')
     target_amount = models.DecimalField(max_digits=10, decimal_places=2, help_text='Целевая сумма')
     current_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text='Накоплено')
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
+    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
     
     # Timeline
@@ -391,8 +398,14 @@ class Income(models.Model):
     ], default='other')
     
     description = models.TextField(blank=True, null=True)
+    merchant = models.CharField(max_length=255, blank=True, null=True, help_text='Sender or business name')
     source = models.CharField(max_length=100, blank=True, help_text='Source of income (e.g., parents, employer)')
     source_file = models.ForeignKey('UploadedFile', on_delete=models.SET_NULL, null=True, blank=True, related_name='incomes')
+    
+    # AI and Review
+    needs_review = models.BooleanField(default=False)
+    ai_category_confidence = models.FloatField(null=True, blank=True)
+    currency = models.CharField(max_length=3, default='KGS')
     
     # Goal linking
     linked_goal = models.ForeignKey(UserGoal, on_delete=models.SET_NULL, null=True, blank=True, 
@@ -436,9 +449,15 @@ class Expense(models.Model):
     ], default='other')
     
     description = models.TextField(blank=True, null=True)
+    merchant = models.CharField(max_length=255, blank=True, null=True, help_text='Store or merchant name')
     is_essential = models.BooleanField(default=False, help_text='Is this an essential expense?')
     source_file = models.ForeignKey('UploadedFile', on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses')
     
+    # AI and Review
+    needs_review = models.BooleanField(default=False)
+    ai_category_confidence = models.FloatField(null=True, blank=True)
+    currency = models.CharField(max_length=3, default='KGS')
+
     # Goal impact
     impacts_goal = models.ForeignKey(UserGoal, on_delete=models.SET_NULL, null=True, blank=True,
                                     help_text='Goal this expense affects')
